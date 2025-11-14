@@ -22,4 +22,4 @@ INSERT INTO profesional (id, especialidad, horario_disponible, usuario_id) VALUE
 INSERT INTO cita (id, fecha_hora, estado, usuario_id, servicio_id, profesional_id) VALUES
 (1, '2024-01-15 09:00:00', 'CONFIRMADA', 4, 1, 1),
 (2, '2024-01-15 10:30:00', 'PENDIENTE', 3, 2, 2),
-(3, '2024-01-16 14:00:00', 'CONFIRMADA', 2, 3, 3);S
+(3, '2024-01-16 14:00:00', 'CONFIRMADA', 2, 3, 3);
