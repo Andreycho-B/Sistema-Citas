@@ -10,12 +10,13 @@ import com.andrey.sistema_citas.mapper.ServicioMapper;
 import com.andrey.sistema_citas.repository.ProfesionalRepository;
 import com.andrey.sistema_citas.repository.ServicioRepository;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -30,15 +31,18 @@ public class ServicioService {
         this.profesionalRepository = profesionalRepository;
     }
 
-    // Crear servicio
+    // -------------------------------------------------------------------------
+    // CREAR SERVICIO
+    // -------------------------------------------------------------------------
     public ServicioResponseDTO crearServicio(ServicioCreateDTO dto) {
 
+        // Validar profesional
         Profesional profesional = profesionalRepository.findById(dto.getProfesionalId())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No existe un profesional con id: " + dto.getProfesionalId()
                 ));
 
-        // Validación de nombre único
+        // Validar nombre único
         servicioRepository.findByNombre(dto.getNombre()).ifPresent(s -> {
             throw new RuntimeException("Ya existe un servicio con el nombre: " + dto.getNombre());
         });
@@ -50,8 +54,10 @@ public class ServicioService {
         return ServicioMapper.toResponse(guardado);
     }
 
-    // Actualizar servicio
-    public ServicioResponseDTO actualizarServicio(Long id, ServicioUpdateDTO dto) {
+    // -------------------------------------------------------------------------
+    // ACTUALIZAR SERVICIO
+    // -------------------------------------------------------------------------
+    public ServicioResponseDTO actualizarServicioDTO(Long id, ServicioUpdateDTO dto) {
 
         Servicio existente = servicioRepository.findById(id)
                 .orElseThrow(() ->
@@ -64,38 +70,51 @@ public class ServicioService {
         return ServicioMapper.toResponse(actualizado);
     }
 
-    // Obtener por ID
-    public ServicioResponseDTO obtenerServicioPorId(Long id) {
-        Servicio servicio = servicioRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Servicio no encontrado con id: " + id)
-                );
-
-        return ServicioMapper.toResponse(servicio);
+    // -------------------------------------------------------------------------
+    // OBTENER POR ID (para controller)
+    // -------------------------------------------------------------------------
+    public Optional<Servicio> obtenerServicioPorId(Long id) {
+        return servicioRepository.findById(id);
     }
 
-    // Paginación
+    // -------------------------------------------------------------------------
+    // PÁGINA COMPLETA DE SERVICIOS
+    // -------------------------------------------------------------------------
     public Page<ServicioResponseDTO> obtenerServiciosPaginados(Pageable pageable) {
         return servicioRepository.findAll(pageable)
                 .map(ServicioMapper::toResponse);
     }
 
-    // Buscar por nombre con paginación
-    public Page<ServicioResponseDTO> buscarPorNombre(String nombre, Pageable pageable) {
-        return servicioRepository.findByNombreContainingIgnoreCase(nombre, pageable)
-                .map(ServicioMapper::toResponse);
+    // -------------------------------------------------------------------------
+    // BUSCAR POR NOMBRE
+    // -------------------------------------------------------------------------
+    public List<Servicio> buscarServiciosPorNombre(String nombre) {
+        return servicioRepository.findByNombreContainingIgnoreCase(nombre);
     }
 
-    // Eliminar
+    // -------------------------------------------------------------------------
+    // BUSCAR POR RANGO DE PRECIO
+    // -------------------------------------------------------------------------
+    public List<Servicio> buscarServiciosPorRangoDePrecio(Double min, Double max) {
+        return servicioRepository.findByPrecioBetween(min, max);
+    }
+
+    // -------------------------------------------------------------------------
+    // BUSCAR POR DURACIÓN
+    // -------------------------------------------------------------------------
+    public List<Servicio> buscarServiciosPorDuracion(String duracion) {
+        return servicioRepository.findByDuracion(duracion);
+    }
+
+    // -------------------------------------------------------------------------
+    // ELIMINAR
+    // -------------------------------------------------------------------------
     public void eliminarServicio(Long id) {
         if (!servicioRepository.existsById(id)) {
             throw new ResourceNotFoundException("Servicio no encontrado con id: " + id);
         }
         servicioRepository.deleteById(id);
     }
-
-	public List<Servicio> obtenerTodosLosServicios() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
+
+

@@ -6,8 +6,8 @@ import com.andrey.sistema_citas.dto.ServicioUpdateDTO;
 import com.andrey.sistema_citas.entity.Servicio;
 import com.andrey.sistema_citas.mapper.ServicioMapper;
 import com.andrey.sistema_citas.service.ServicioService;
+
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,32 +25,28 @@ public class ServicioController {
         this.servicioService = servicioService;
     }
 
+    // -------------------------------------------------------------------------
+    // CREAR SERVICIO (usa DTO completo = profesionalId + datos)
+    // -------------------------------------------------------------------------
     @PostMapping
     public ServicioResponseDTO crearServicio(@RequestBody ServicioCreateDTO dto) {
-        Servicio servicio = ServicioMapper.toEntity(dto);
-        Servicio guardado = servicioService.guardarServicio(servicio);
-        return ServicioMapper.toResponse(guardado);
+        return servicioService.crearServicio(dto);
     }
 
+    // -------------------------------------------------------------------------
+    // LISTAR SERVICIOS CON PAGINACIÓN
+    // -------------------------------------------------------------------------
     @GetMapping
     public Page<ServicioResponseDTO> obtenerServiciosPaginados(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        PageRequest pageable = PageRequest.of(page, size);
-        List<Servicio> servicios = servicioService.obtenerTodosLosServicios();
-
-        int start = Math.min((int) pageable.getOffset(), servicios.size());
-        int end = Math.min(start + pageable.getPageSize(), servicios.size());
-
-        List<ServicioResponseDTO> contenido = servicios.subList(start, end)
-                .stream()
-                .map(ServicioMapper::toResponse)
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(contenido, pageable, servicios.size());
+        return servicioService.obtenerServiciosPaginados(PageRequest.of(page, size));
     }
 
+    // -------------------------------------------------------------------------
+    // OBTENER SERVICIO POR ID
+    // -------------------------------------------------------------------------
     @GetMapping("/{id}")
     public ServicioResponseDTO obtenerPorId(@PathVariable Long id) {
         Servicio servicio = servicioService.obtenerServicioPorId(id)
@@ -58,6 +54,9 @@ public class ServicioController {
         return ServicioMapper.toResponse(servicio);
     }
 
+    // -------------------------------------------------------------------------
+    // BUSCAR POR NOMBRE (SIN PAGINAR)
+    // -------------------------------------------------------------------------
     @GetMapping("/buscar")
     public List<ServicioResponseDTO> buscarPorNombre(@RequestParam String nombre) {
         return servicioService.buscarServiciosPorNombre(nombre)
@@ -66,6 +65,9 @@ public class ServicioController {
                 .collect(Collectors.toList());
     }
 
+    // -------------------------------------------------------------------------
+    // BUSCAR POR RANGO DE PRECIO
+    // -------------------------------------------------------------------------
     @GetMapping("/rango-precio")
     public List<ServicioResponseDTO> buscarPorRangoPrecio(
             @RequestParam Double min,
@@ -77,6 +79,9 @@ public class ServicioController {
                 .collect(Collectors.toList());
     }
 
+    // -------------------------------------------------------------------------
+    // BUSCAR POR DURACIÓN
+    // -------------------------------------------------------------------------
     @GetMapping("/duracion")
     public List<ServicioResponseDTO> buscarPorDuracion(@RequestParam String duracion) {
         return servicioService.buscarServiciosPorDuracion(duracion)
@@ -85,21 +90,20 @@ public class ServicioController {
                 .collect(Collectors.toList());
     }
 
+    // -------------------------------------------------------------------------
+    // ACTUALIZAR SERVICIO
+    // -------------------------------------------------------------------------
     @PutMapping("/{id}")
     public ServicioResponseDTO actualizarServicio(
             @PathVariable Long id,
             @RequestBody ServicioUpdateDTO dto
     ) {
-        Servicio servicio = servicioService.obtenerServicioPorId(id)
-                .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
-
-        ServicioMapper.updateEntityFromDto(dto, servicio);
-
-        Servicio actualizado = servicioService.guardarServicio(servicio);
-        return ServicioMapper.toResponse(actualizado);
+        return servicioService.actualizarServicioDTO(id, dto);
     }
 
-
+    // -------------------------------------------------------------------------
+    // ELIMINAR SERVICIO
+    // -------------------------------------------------------------------------
     @DeleteMapping("/{id}")
     public void eliminarServicio(@PathVariable Long id) {
         servicioService.eliminarServicio(id);
