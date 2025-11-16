@@ -1,20 +1,25 @@
 package com.andrey.sistema_citas.service;
 
+import com.andrey.sistema_citas.dto.CitaCreateDTO;
+import com.andrey.sistema_citas.dto.CitaResponseDTO;
+import com.andrey.sistema_citas.dto.CitaUpdateDTO;
 import com.andrey.sistema_citas.entity.Cita;
+import com.andrey.sistema_citas.entity.EstadoCita;
 import com.andrey.sistema_citas.entity.Usuario;
 import com.andrey.sistema_citas.entity.Servicio;
 import com.andrey.sistema_citas.entity.Profesional;
+import com.andrey.sistema_citas.exception.ResourceNotFoundException;
+import com.andrey.sistema_citas.mapper.CitaMapper;
 import com.andrey.sistema_citas.repository.CitaRepository;
 import com.andrey.sistema_citas.repository.UsuarioRepository;
 import com.andrey.sistema_citas.repository.ServicioRepository;
 import com.andrey.sistema_citas.repository.ProfesionalRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.andrey.sistema_citas.entity.EstadoCita;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -33,117 +38,163 @@ public class CitaService {
         this.profesionalRepository = profesionalRepository;
     }
 
-    
-    public Cita agendarCita(Long usuarioId, Long servicioId, Long profesionalId, LocalDateTime fechaHora) {
+    public CitaResponseDTO agendarCita(CitaCreateDTO dto) {
+        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + dto.getUsuarioId()));
         
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + usuarioId));
+        Servicio servicio = servicioRepository.findById(dto.getServicioId())
+                .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado con ID: " + dto.getServicioId()));
         
-        Servicio servicio = servicioRepository.findById(servicioId)
-                .orElseThrow(() -> new RuntimeException("Servicio no encontrado con ID: " + servicioId));
-        
-        Profesional profesional = profesionalRepository.findById(profesionalId)
-                .orElseThrow(() -> new RuntimeException("Profesional no encontrado con ID: " + profesionalId));
+        Profesional profesional = profesionalRepository.findById(dto.getProfesionalId())
+                .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado con ID: " + dto.getProfesionalId()));
 
-       
-        if (fechaHora.isBefore(LocalDateTime.now())) {
+        if (dto.getFechaHora().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("No se pueden agendar citas en fechas pasadas");
         }
 
+        int duracionMinutos = parsearDuracion(servicio.getDuracion());
         
         boolean profesionalOcupado = citaRepository.existsByProfesionalAndFechaHoraBetween(
-                profesional, fechaHora.minusMinutes(30), fechaHora.plusMinutes(30));
+                profesional, dto.getFechaHora(), dto.getFechaHora().plusMinutes(duracionMinutos));
         
         if (profesionalOcupado) {
             throw new RuntimeException("El profesional no está disponible en ese horario");
         }
 
-        
         boolean usuarioOcupado = citaRepository.existsByUsuarioAndFechaHoraBetween(
-                usuario, fechaHora.minusMinutes(30), fechaHora.plusMinutes(30));
+                usuario, dto.getFechaHora(), dto.getFechaHora().plusMinutes(duracionMinutos));
         
         if (usuarioOcupado) {
             throw new RuntimeException("Ya tienes una cita programada en ese horario");
         }
 
-      
-        Cita cita = new Cita(fechaHora, EstadoCita.PENDIENTE, usuario, servicio, profesional);
-        return citaRepository.save(cita);
+        Cita cita = new Cita(dto.getFechaHora(), EstadoCita.PENDIENTE, usuario, servicio, profesional);
+        Cita guardada = citaRepository.save(cita);
+        
+        return CitaMapper.toResponse(guardada);
     }
 
-    
-    public List<Cita> obtenerTodasLasCitas() {
-        return citaRepository.findAll();
+    public List<CitaResponseDTO> obtenerTodasLasCitas() {
+        return citaRepository.findAll()
+                .stream()
+                .map(CitaMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    
-    public Optional<Cita> obtenerCitaPorId(Long id) {
-        return citaRepository.findById(id);
+    public CitaResponseDTO obtenerCitaPorId(Long id) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada con ID: " + id));
+        return CitaMapper.toResponse(cita);
     }
 
-    
-    public List<Cita> obtenerCitasPorUsuario(Long usuarioId) {
-        return citaRepository.findByUsuarioId(usuarioId);
+    public List<CitaResponseDTO> obtenerCitasPorUsuario(Long usuarioId) {
+        return citaRepository.findByUsuarioId(usuarioId)
+                .stream()
+                .map(CitaMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    public List<Cita> obtenerCitasPorProfesional(Long profesionalId) {
-        return citaRepository.findByProfesionalId(profesionalId);
+    public List<CitaResponseDTO> obtenerCitasPorProfesional(Long profesionalId) {
+        return citaRepository.findByProfesionalId(profesionalId)
+                .stream()
+                .map(CitaMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-   
-    public List<Cita> obtenerCitasPorEstado(String estado) {
-        return citaRepository.findByEstado(estado);
+    public List<CitaResponseDTO> obtenerCitasPorEstado(EstadoCita estado) {
+        return citaRepository.findByEstado(estado.name())
+                .stream()
+                .map(CitaMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    
-    public List<Cita> obtenerCitasPendientes() {
-        return citaRepository.findCitasPendientes();
+    public List<CitaResponseDTO> obtenerCitasPendientes() {
+        return citaRepository.findCitasPendientes()
+                .stream()
+                .map(CitaMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    
-    public List<Cita> obtenerCitasConfirmadas() {
-        return citaRepository.findCitasConfirmadas();
+    public List<CitaResponseDTO> obtenerCitasConfirmadas() {
+        return citaRepository.findCitasConfirmadas()
+                .stream()
+                .map(CitaMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    
-    public Cita cambiarEstadoCita(Long citaId, EstadoCita nuevoEstado) {
+    public CitaResponseDTO actualizarCita(Long id, CitaUpdateDTO dto) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada con ID: " + id));
+        
+        CitaMapper.updateEntityFromDto(dto, cita);
+        Cita actualizada = citaRepository.save(cita);
+        
+        return CitaMapper.toResponse(actualizada);
+    }
+
+    public CitaResponseDTO cambiarEstadoCita(Long citaId, EstadoCita nuevoEstado) {
         Cita cita = citaRepository.findById(citaId)
-                .orElseThrow(() -> new RuntimeException("Cita no encontrada con ID: " + citaId));
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada con ID: " + citaId));
         
         cita.setEstado(nuevoEstado);
-        return citaRepository.save(cita);
+        Cita actualizada = citaRepository.save(cita);
+        
+        return CitaMapper.toResponse(actualizada);
     }
 
-    
-    public Cita confirmarCita(Long citaId) {
+    public CitaResponseDTO confirmarCita(Long citaId) {
         return cambiarEstadoCita(citaId, EstadoCita.CONFIRMADA);
     }
 
-    public Cita cancelarCita(Long citaId) {
+    public CitaResponseDTO cancelarCita(Long citaId) {
         return cambiarEstadoCita(citaId, EstadoCita.CANCELADA);
     }
 
-    public Cita completarCita(Long citaId) {
+    public CitaResponseDTO completarCita(Long citaId) {
         return cambiarEstadoCita(citaId, EstadoCita.COMPLETADA);
     }
 
-    
-    public List<Cita> obtenerCitasEnRango(LocalDateTime inicio, LocalDateTime fin) {
-        return citaRepository.findByFechaHoraBetween(inicio, fin);
+    public List<CitaResponseDTO> obtenerCitasEnRango(LocalDateTime inicio, LocalDateTime fin) {
+        return citaRepository.findByFechaHoraBetween(inicio, fin)
+                .stream()
+                .map(CitaMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    
     public void eliminarCita(Long id) {
+        if (!citaRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Cita no encontrada con id: " + id);
+        }
         citaRepository.deleteById(id);
     }
 
-   
     public long contarCitas() {
         return citaRepository.count();
     }
 
-    
     public List<Object[]> obtenerEstadisticasCitasPorEstado() {
         return citaRepository.countCitasByEstado();
+    }
+
+    private int parsearDuracion(String duracion) {
+        if (duracion == null || duracion.isEmpty()) {
+            return 60; // Por defecto 60 minutos
+        }
+        
+        duracion = duracion.toLowerCase().trim();
+        
+        try {
+            if (duracion.contains("hora")) {
+                String numero = duracion.replaceAll("[^0-9]", "");
+                return Integer.parseInt(numero) * 60;
+            } else if (duracion.contains("min")) {
+                String numero = duracion.replaceAll("[^0-9]", "");
+                return Integer.parseInt(numero);
+            } else {
+                return Integer.parseInt(duracion);
+            }
+        } catch (NumberFormatException e) {
+            return 60; // Por defecto si no se puede parsear
+        }
     }
 }
