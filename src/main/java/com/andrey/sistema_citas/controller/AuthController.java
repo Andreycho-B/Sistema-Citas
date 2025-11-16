@@ -2,11 +2,10 @@ package com.andrey.sistema_citas.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import com.andrey.sistema_citas.dto.LoginRequest;
 import com.andrey.sistema_citas.dto.LoginResponse;
-import com.andrey.sistema_citas.entity.Usuario;
 import com.andrey.sistema_citas.service.AuthService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")
@@ -19,19 +18,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        Usuario usuario = authService.login(request.getEmail(), request.getPassword());
-
-        if (usuario == null) {
-            return ResponseEntity.status(401).body("Credenciales inválidas");
-        }
-
-        LoginResponse response = new LoginResponse(
-            usuario.getId(),
-            usuario.getNombre(),
-            usuario.getEmail()
-        );
-
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }
 }

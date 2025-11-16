@@ -2,8 +2,10 @@ package com.andrey.sistema_citas.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import com.andrey.sistema_citas.dto.LoginRequest;
+import com.andrey.sistema_citas.dto.LoginResponse;
 import com.andrey.sistema_citas.entity.Usuario;
+import com.andrey.sistema_citas.exception.UnauthorizedException;
 import com.andrey.sistema_citas.repository.UsuarioRepository;
 
 @Service
@@ -18,17 +20,19 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Usuario login(String email, String password) {
+    public LoginResponse login(LoginRequest request) {
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UnauthorizedException("Credenciales inválidas"));
 
-        
-        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
-
-        if (usuario == null) {
-            return null;
+        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
+            throw new UnauthorizedException("Credenciales inválidas");
         }
 
-        boolean matches = passwordEncoder.matches(password, usuario.getPassword());
-
-        return matches ? usuario : null;
+        return new LoginResponse(
+            usuario.getId(),
+            usuario.getNombre(),
+            usuario.getEmail(),
+            usuario.getRoles()
+        );
     }
 }

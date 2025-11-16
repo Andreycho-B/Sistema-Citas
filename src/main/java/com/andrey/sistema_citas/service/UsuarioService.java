@@ -77,16 +77,6 @@ public class UsuarioService {
     public Optional<Usuario> obtenerUsuarioPorEmail(String email) {
         return usuarioRepository.findByEmail(email);
     }
-
-    public Optional<Usuario> login(String email, String rawPassword) {
-        Optional<Usuario> opt = usuarioRepository.findByEmail(email);
-
-        if (opt.isPresent() && passwordEncoder.matches(rawPassword, opt.get().getPassword())) {
-            return opt;
-        }
-
-        return Optional.empty();
-    }
 }
 
 
