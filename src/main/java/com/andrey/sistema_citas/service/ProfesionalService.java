@@ -1,8 +1,13 @@
 package com.andrey.sistema_citas.service;
 
+import com.andrey.sistema_citas.dto.ProfesionalCreateDTO;
+import com.andrey.sistema_citas.dto.ProfesionalResponseDTO;
+import com.andrey.sistema_citas.dto.ProfesionalUpdateDTO;
 import com.andrey.sistema_citas.entity.Profesional;
+import com.andrey.sistema_citas.entity.Role;
 import com.andrey.sistema_citas.entity.Usuario;
 import com.andrey.sistema_citas.exception.ResourceNotFoundException;
+import com.andrey.sistema_citas.mapper.ProfesionalMapper;
 import com.andrey.sistema_citas.repository.ProfesionalRepository;
 import com.andrey.sistema_citas.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
@@ -10,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -25,79 +30,91 @@ public class ProfesionalService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public Profesional crearProfesional(Profesional profesional) {
-        Usuario usuario = obtenerUsuarioValido(profesional.getUsuario().getId());
-        profesional.setUsuario(usuario);
-        return profesionalRepository.save(profesional);
+    public ProfesionalResponseDTO crearProfesional(ProfesionalCreateDTO dto) {
+        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + dto.getUsuarioId()));
+
+        if (profesionalRepository.findByUsuario(usuario).isPresent()) {
+            throw new RuntimeException("El usuario ya está registrado como profesional");
+        }
+
+        usuario.addRole(Role.PROFESSIONAL);
+        usuarioRepository.save(usuario);
+
+        Profesional profesional = ProfesionalMapper.toEntity(dto, usuario);
+        Profesional guardado = profesionalRepository.save(profesional);
+
+        return ProfesionalMapper.toResponse(guardado);
     }
 
-  
-    public Profesional actualizarProfesional(Long id, Profesional datosActualizados) {
+    public ProfesionalResponseDTO actualizarProfesional(Long id, ProfesionalUpdateDTO dto) {
         Profesional existente = profesionalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado con id: " + id));
 
-       
-        existente.setEspecialidad(datosActualizados.getEspecialidad());
-        existente.setHorarioDisponible(datosActualizados.getHorarioDisponible());
+        ProfesionalMapper.updateEntityFromDto(dto, existente);
+        Profesional actualizado = profesionalRepository.save(existente);
 
-       
-        if (datosActualizados.getUsuario() != null &&
-            datosActualizados.getUsuario().getId() != null) {
-            Usuario usuario = obtenerUsuarioValido(datosActualizados.getUsuario().getId());
-            existente.setUsuario(usuario);
-        }
-
-        return profesionalRepository.save(existente);
+        return ProfesionalMapper.toResponse(actualizado);
     }
 
-   
     public void eliminarProfesional(Long id) {
-        if (!profesionalRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Profesional no encontrado con id: " + id);
+        Profesional profesional = profesionalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado con id: " + id));
+
+        Usuario usuario = profesional.getUsuario();
+        if (usuario != null) {
+            usuario.removeRole(Role.PROFESSIONAL);
+            usuarioRepository.save(usuario);
         }
+
         profesionalRepository.deleteById(id);
     }
 
-   
-    public List<Profesional> obtenerTodosLosProfesionales() {
-        return profesionalRepository.findAll();
+    public List<ProfesionalResponseDTO> obtenerTodosLosProfesionales() {
+        return profesionalRepository.findAll()
+                .stream()
+                .map(ProfesionalMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Profesional> obtenerProfesionalPorId(Long id) {
-        return profesionalRepository.findById(id);
+    public ProfesionalResponseDTO obtenerProfesionalPorId(Long id) {
+        Profesional profesional = profesionalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado con id: " + id));
+        return ProfesionalMapper.toResponse(profesional);
     }
 
-    public List<Profesional> buscarProfesionalesPorEspecialidad(String especialidad) {
-        return profesionalRepository.findByEspecialidadContainingIgnoreCase(especialidad);
+    public List<ProfesionalResponseDTO> buscarProfesionalesPorEspecialidad(String especialidad) {
+        return profesionalRepository.findByEspecialidadContainingIgnoreCase(especialidad)
+                .stream()
+                .map(ProfesionalMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Profesional> obtenerProfesionalPorUsuarioId(Long usuarioId) {
-        return profesionalRepository.findByUsuarioId(usuarioId);
+    public ProfesionalResponseDTO obtenerProfesionalPorUsuarioId(Long usuarioId) {
+        Profesional profesional = profesionalRepository.findByUsuarioId(usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe profesional con usuario ID: " + usuarioId));
+        return ProfesionalMapper.toResponse(profesional);
     }
 
-    public List<Profesional> buscarProfesionalesDisponiblesDespuesDe(LocalDateTime fechaHora) {
-        return profesionalRepository.findByHorarioDisponibleAfter(fechaHora);
+    public List<ProfesionalResponseDTO> buscarProfesionalesDisponiblesDespuesDe(LocalDateTime fechaHora) {
+        return profesionalRepository.findByHorarioDisponibleAfter(fechaHora)
+                .stream()
+                .map(ProfesionalMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
-    public List<Profesional> buscarProfesionalesDisponiblesEnRango(LocalDateTime inicio, LocalDateTime fin) {
-        return profesionalRepository.findProfesionalesDisponiblesEnRango(inicio, fin);
+    public List<ProfesionalResponseDTO> buscarProfesionalesDisponiblesEnRango(LocalDateTime inicio, LocalDateTime fin) {
+        return profesionalRepository.findProfesionalesDisponiblesEnRango(inicio, fin)
+                .stream()
+                .map(ProfesionalMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     public List<Object[]> obtenerEstadisticasPorEspecialidad() {
         return profesionalRepository.countProfesionalesByEspecialidad();
     }
 
-    public List<Object[]> buscarProfesionalesConUsuarioPorNombre(String nombre) {
-        return profesionalRepository.findProfesionalesConUsuarioPorNombre(nombre);
-    }
-
     public long contarProfesionales() {
         return profesionalRepository.count();
-    }
-
-    private Usuario obtenerUsuarioValido(Long usuarioId) {
-        return usuarioRepository.findById(usuarioId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("No se encontró el usuario con ID: " + usuarioId));
     }
 }

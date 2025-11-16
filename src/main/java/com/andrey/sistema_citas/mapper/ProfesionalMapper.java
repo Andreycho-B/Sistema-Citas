@@ -8,30 +8,21 @@ import com.andrey.sistema_citas.entity.Usuario;
 
 public class ProfesionalMapper {
 
-
-    public static Profesional toEntity(ProfesionalCreateDTO dto) {
+    public static Profesional toEntity(ProfesionalCreateDTO dto, Usuario usuario) {
         if (dto == null) return null;
 
         Profesional profesional = new Profesional();
-
         profesional.setEspecialidad(dto.getEspecialidad());
         profesional.setHorarioDisponible(dto.getHorarioDisponible());
-
-        if (dto.getUsuarioId() != null) {
-            Usuario u = new Usuario();
-            u.setId(dto.getUsuarioId());
-            profesional.setUsuario(u);
-        }
-
+        profesional.setUsuario(usuario);
+        
         return profesional;
     }
 
-   
     public static ProfesionalResponseDTO toResponse(Profesional profesional) {
         if (profesional == null) return null;
 
         ProfesionalResponseDTO dto = new ProfesionalResponseDTO();
-
         dto.setId(profesional.getId());
         dto.setEspecialidad(profesional.getEspecialidad());
         dto.setHorarioDisponible(profesional.getHorarioDisponible());
@@ -44,21 +35,15 @@ public class ProfesionalMapper {
         return dto;
     }
 
-
     public static void updateEntityFromDto(ProfesionalUpdateDTO dto, Profesional profesional) {
         if (dto == null || profesional == null) return;
 
-        if (dto.getEspecialidad() != null)
+        if (dto.getEspecialidad() != null) {
             profesional.setEspecialidad(dto.getEspecialidad());
+        }
 
-        if (dto.getHorarioDisponible() != null)
+        if (dto.getHorarioDisponible() != null) {
             profesional.setHorarioDisponible(dto.getHorarioDisponible());
-
-        if (dto.getUsuarioId() != null) {
-            Usuario u = new Usuario();
-            u.setId(dto.getUsuarioId());
-            profesional.setUsuario(u);
         }
     }
 }
-

@@ -1,11 +1,15 @@
 package com.andrey.sistema_citas.controller;
 
-import com.andrey.sistema_citas.entity.Profesional;
-import com.andrey.sistema_citas.exception.ResourceNotFoundException;
+import com.andrey.sistema_citas.dto.ProfesionalCreateDTO;
+import com.andrey.sistema_citas.dto.ProfesionalResponseDTO;
+import com.andrey.sistema_citas.dto.ProfesionalUpdateDTO;
 import com.andrey.sistema_citas.service.ProfesionalService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -18,57 +22,61 @@ public class ProfesionalController {
         this.profesionalService = profesionalService;
     }
 
-   
     @PostMapping
-    public ResponseEntity<Profesional> crearProfesional(@RequestBody Profesional profesional) {
-        Profesional nuevo = profesionalService.crearProfesional(profesional);
-        return ResponseEntity.ok(nuevo);
+    public ResponseEntity<ProfesionalResponseDTO> crearProfesional(@Valid @RequestBody ProfesionalCreateDTO dto) {
+        ProfesionalResponseDTO nuevo = profesionalService.crearProfesional(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
     }
 
-   
     @PutMapping("/{id}")
-    public ResponseEntity<Profesional> actualizarProfesional(
+    public ResponseEntity<ProfesionalResponseDTO> actualizarProfesional(
             @PathVariable Long id,
-            @RequestBody Profesional profesionalActualizado
-    ) {
-        Profesional actualizado = profesionalService.actualizarProfesional(id, profesionalActualizado);
+            @Valid @RequestBody ProfesionalUpdateDTO dto) {
+        ProfesionalResponseDTO actualizado = profesionalService.actualizarProfesional(id, dto);
         return ResponseEntity.ok(actualizado);
     }
 
-   
     @GetMapping
-    public ResponseEntity<List<Profesional>> obtenerTodos() {
-        return ResponseEntity.ok(profesionalService.obtenerTodosLosProfesionales());
+    public ResponseEntity<List<ProfesionalResponseDTO>> obtenerTodos() {
+        List<ProfesionalResponseDTO> profesionales = profesionalService.obtenerTodosLosProfesionales();
+        return ResponseEntity.ok(profesionales);
     }
 
-   
     @GetMapping("/{id}")
-    public ResponseEntity<Profesional> obtenerPorId(@PathVariable Long id) {
-        Profesional profesional = profesionalService.obtenerProfesionalPorId(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado con ID: " + id));
+    public ResponseEntity<ProfesionalResponseDTO> obtenerPorId(@PathVariable Long id) {
+        ProfesionalResponseDTO profesional = profesionalService.obtenerProfesionalPorId(id);
         return ResponseEntity.ok(profesional);
     }
 
-    
     @GetMapping("/buscar")
-    public ResponseEntity<List<Profesional>> buscarPorEspecialidad(@RequestParam String especialidad) {
-        return ResponseEntity.ok(profesionalService.buscarProfesionalesPorEspecialidad(especialidad));
+    public ResponseEntity<List<ProfesionalResponseDTO>> buscarPorEspecialidad(@RequestParam String especialidad) {
+        List<ProfesionalResponseDTO> profesionales = profesionalService.buscarProfesionalesPorEspecialidad(especialidad);
+        return ResponseEntity.ok(profesionales);
     }
 
-   
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Profesional> obtenerPorUsuarioId(@PathVariable Long usuarioId) {
-        Profesional profesional = profesionalService.obtenerProfesionalPorUsuarioId(usuarioId)
-                .orElseThrow(() -> new ResourceNotFoundException("No existe profesional con usuario ID: " + usuarioId));
+    public ResponseEntity<ProfesionalResponseDTO> obtenerPorUsuarioId(@PathVariable Long usuarioId) {
+        ProfesionalResponseDTO profesional = profesionalService.obtenerProfesionalPorUsuarioId(usuarioId);
         return ResponseEntity.ok(profesional);
     }
 
-    
+    @GetMapping("/disponibles")
+    public ResponseEntity<List<ProfesionalResponseDTO>> buscarDisponiblesDespuesDe(@RequestParam LocalDateTime fecha) {
+        List<ProfesionalResponseDTO> profesionales = profesionalService.buscarProfesionalesDisponiblesDespuesDe(fecha);
+        return ResponseEntity.ok(profesionales);
+    }
+
+    @GetMapping("/disponibles/rango")
+    public ResponseEntity<List<ProfesionalResponseDTO>> buscarDisponiblesEnRango(
+            @RequestParam LocalDateTime inicio,
+            @RequestParam LocalDateTime fin) {
+        List<ProfesionalResponseDTO> profesionales = profesionalService.buscarProfesionalesDisponiblesEnRango(inicio, fin);
+        return ResponseEntity.ok(profesionales);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         profesionalService.eliminarProfesional(id);
         return ResponseEntity.noContent().build();
     }
 }
-
-
