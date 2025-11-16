@@ -18,14 +18,14 @@ public class ProfesionalController {
         this.profesionalService = profesionalService;
     }
 
-    // Crear profesional
+   
     @PostMapping
     public ResponseEntity<Profesional> crearProfesional(@RequestBody Profesional profesional) {
         Profesional nuevo = profesionalService.crearProfesional(profesional);
         return ResponseEntity.ok(nuevo);
     }
 
-    // Actualizar profesional
+   
     @PutMapping("/{id}")
     public ResponseEntity<Profesional> actualizarProfesional(
             @PathVariable Long id,
@@ -35,13 +35,13 @@ public class ProfesionalController {
         return ResponseEntity.ok(actualizado);
     }
 
-    // Obtener todos los profesionales
+   
     @GetMapping
     public ResponseEntity<List<Profesional>> obtenerTodos() {
         return ResponseEntity.ok(profesionalService.obtenerTodosLosProfesionales());
     }
 
-    // Obtener profesional por ID
+   
     @GetMapping("/{id}")
     public ResponseEntity<Profesional> obtenerPorId(@PathVariable Long id) {
         Profesional profesional = profesionalService.obtenerProfesionalPorId(id)
@@ -49,13 +49,13 @@ public class ProfesionalController {
         return ResponseEntity.ok(profesional);
     }
 
-    // Buscar por especialidad
+    
     @GetMapping("/buscar")
     public ResponseEntity<List<Profesional>> buscarPorEspecialidad(@RequestParam String especialidad) {
         return ResponseEntity.ok(profesionalService.buscarProfesionalesPorEspecialidad(especialidad));
     }
 
-    // Obtener profesional por ID del usuario
+   
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<Profesional> obtenerPorUsuarioId(@PathVariable Long usuarioId) {
         Profesional profesional = profesionalService.obtenerProfesionalPorUsuarioId(usuarioId)
@@ -63,7 +63,7 @@ public class ProfesionalController {
         return ResponseEntity.ok(profesional);
     }
 
-    // Eliminar profesional por ID
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         profesionalService.eliminarProfesional(id);

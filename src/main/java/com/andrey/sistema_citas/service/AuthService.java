@@ -20,7 +20,7 @@ public class AuthService {
 
     public Usuario login(String email, String password) {
 
-        // Obtiene el usuario o retorna null si no existe
+        
         Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
 
         if (usuario == null) {

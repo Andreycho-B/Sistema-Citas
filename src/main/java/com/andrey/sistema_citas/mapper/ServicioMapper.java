@@ -7,7 +7,7 @@ import com.andrey.sistema_citas.entity.Servicio;
 
 public class ServicioMapper {
 
-    // Crear entidad desde DTO de creación
+    
     public static Servicio toEntity(ServicioCreateDTO dto) {
         if (dto == null) return null;
 
@@ -19,7 +19,7 @@ public class ServicioMapper {
         return servicio;
     }
 
-    // Convertir entidad a DTO de respuesta
+    
     public static ServicioResponseDTO toResponse(Servicio servicio) {
         if (servicio == null) return null;
 
@@ -32,7 +32,7 @@ public class ServicioMapper {
         );
     }
 
-    // Actualizar parcialmente entidad desde DTO de actualización
+   
     public static void updateEntityFromDto(ServicioUpdateDTO dto, Servicio servicio) {
         if (dto == null || servicio == null) return;
 

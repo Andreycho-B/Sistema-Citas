@@ -25,27 +25,22 @@ public class ProfesionalService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    // --------------------------------------------------
-    // Métodos CRUD
-    // --------------------------------------------------
-
-    /** Crear un profesional */
     public Profesional crearProfesional(Profesional profesional) {
         Usuario usuario = obtenerUsuarioValido(profesional.getUsuario().getId());
         profesional.setUsuario(usuario);
         return profesionalRepository.save(profesional);
     }
 
-    /** Actualizar un profesional */
+  
     public Profesional actualizarProfesional(Long id, Profesional datosActualizados) {
         Profesional existente = profesionalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado con id: " + id));
 
-        // Asignación de campos actualizables
+       
         existente.setEspecialidad(datosActualizados.getEspecialidad());
         existente.setHorarioDisponible(datosActualizados.getHorarioDisponible());
 
-        // Si viene un usuario nuevo, validarlo
+       
         if (datosActualizados.getUsuario() != null &&
             datosActualizados.getUsuario().getId() != null) {
             Usuario usuario = obtenerUsuarioValido(datosActualizados.getUsuario().getId());
@@ -55,7 +50,7 @@ public class ProfesionalService {
         return profesionalRepository.save(existente);
     }
 
-    /** Eliminar profesional */
+   
     public void eliminarProfesional(Long id) {
         if (!profesionalRepository.existsById(id)) {
             throw new ResourceNotFoundException("Profesional no encontrado con id: " + id);
@@ -63,10 +58,7 @@ public class ProfesionalService {
         profesionalRepository.deleteById(id);
     }
 
-    // --------------------------------------------------
-    // Consultas y búsquedas
-    // --------------------------------------------------
-
+   
     public List<Profesional> obtenerTodosLosProfesionales() {
         return profesionalRepository.findAll();
     }
@@ -103,11 +95,6 @@ public class ProfesionalService {
         return profesionalRepository.count();
     }
 
-    // --------------------------------------------------
-    // Métodos auxiliares privados
-    // --------------------------------------------------
-
-    /** Valida y obtiene usuario existente */
     private Usuario obtenerUsuarioValido(Long usuarioId) {
         return usuarioRepository.findById(usuarioId)
                 .orElseThrow(() ->

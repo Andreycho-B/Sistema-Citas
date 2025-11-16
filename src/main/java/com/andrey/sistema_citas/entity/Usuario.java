@@ -2,6 +2,8 @@ package com.andrey.sistema_citas.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "usuario")
@@ -26,6 +28,12 @@ public class Usuario {
     @Column(name = "fecha_registro")
     private LocalDateTime fechaRegistro;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Set<Role> roles = new HashSet<>();
+
     public Usuario() {
         // Constructor requerido por JPA
     }
@@ -36,6 +44,17 @@ public class Usuario {
         this.password = password;
         this.telefono = telefono;
         this.fechaRegistro = LocalDateTime.now();
+        this.roles.add(Role.USER); // Por defecto, todo usuario es USER
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.fechaRegistro == null) {
+            this.fechaRegistro = LocalDateTime.now();
+        }
+        if (this.roles.isEmpty()) {
+            this.roles.add(Role.USER);
+        }
     }
 
     // Getters y Setters
@@ -87,6 +106,27 @@ public class Usuario {
         this.fechaRegistro = fechaRegistro;
     }
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    // Métodos útiles para roles
+    public void addRole(Role role) {
+        this.roles.add(role);
+    }
+
+    public void removeRole(Role role) {
+        this.roles.remove(role);
+    }
+
+    public boolean hasRole(Role role) {
+        return this.roles.contains(role);
+    }
+
     @Override
     public String toString() {
         return "Usuario{" +
@@ -95,6 +135,7 @@ public class Usuario {
                 ", email='" + email + '\'' +
                 ", telefono='" + telefono + '\'' +
                 ", fechaRegistro=" + fechaRegistro +
+                ", roles=" + roles +
                 '}';
     }
 }

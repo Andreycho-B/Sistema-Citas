@@ -3,20 +3,19 @@ package com.andrey.sistema_citas.controller;
 import com.andrey.sistema_citas.dto.ServicioCreateDTO;
 import com.andrey.sistema_citas.dto.ServicioResponseDTO;
 import com.andrey.sistema_citas.dto.ServicioUpdateDTO;
-import com.andrey.sistema_citas.entity.Servicio;
-import com.andrey.sistema_citas.mapper.ServicioMapper;
 import com.andrey.sistema_citas.service.ServicioService;
-
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/servicios")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173") // React/Vite
 public class ServicioController {
 
     private final ServicioService servicioService;
@@ -25,87 +24,60 @@ public class ServicioController {
         this.servicioService = servicioService;
     }
 
-    // -------------------------------------------------------------------------
-    // CREAR SERVICIO (usa DTO completo = profesionalId + datos)
-    // -------------------------------------------------------------------------
     @PostMapping
-    public ServicioResponseDTO crearServicio(@RequestBody ServicioCreateDTO dto) {
-        return servicioService.crearServicio(dto);
+    public ResponseEntity<ServicioResponseDTO> crearServicio(@Valid @RequestBody ServicioCreateDTO dto) {
+        ServicioResponseDTO nuevo = servicioService.crearServicio(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
     }
 
-    // -------------------------------------------------------------------------
-    // LISTAR SERVICIOS CON PAGINACIÓN
-    // -------------------------------------------------------------------------
     @GetMapping
-    public Page<ServicioResponseDTO> obtenerServiciosPaginados(
+    public ResponseEntity<Page<ServicioResponseDTO>> obtenerServiciosPaginados(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return servicioService.obtenerServiciosPaginados(PageRequest.of(page, size));
+        Page<ServicioResponseDTO> servicios = servicioService.obtenerServiciosPaginados(PageRequest.of(page, size));
+        return ResponseEntity.ok(servicios);
     }
 
-    // -------------------------------------------------------------------------
-    // OBTENER SERVICIO POR ID
-    // -------------------------------------------------------------------------
     @GetMapping("/{id}")
-    public ServicioResponseDTO obtenerPorId(@PathVariable Long id) {
-        Servicio servicio = servicioService.obtenerServicioPorId(id)
-                .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
-        return ServicioMapper.toResponse(servicio);
+    public ResponseEntity<ServicioResponseDTO> obtenerPorId(@PathVariable Long id) {
+        ServicioResponseDTO servicio = servicioService.obtenerServicioPorId(id);
+        return ResponseEntity.ok(servicio);
     }
 
-    // -------------------------------------------------------------------------
-    // BUSCAR POR NOMBRE (SIN PAGINAR)
-    // -------------------------------------------------------------------------
     @GetMapping("/buscar")
-    public List<ServicioResponseDTO> buscarPorNombre(@RequestParam String nombre) {
-        return servicioService.buscarServiciosPorNombre(nombre)
-                .stream()
-                .map(ServicioMapper::toResponse)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<ServicioResponseDTO>> buscarPorNombre(@RequestParam String nombre) {
+        List<ServicioResponseDTO> servicios = servicioService.buscarServiciosPorNombre(nombre);
+        return ResponseEntity.ok(servicios);
     }
 
-    // -------------------------------------------------------------------------
-    // BUSCAR POR RANGO DE PRECIO
-    // -------------------------------------------------------------------------
     @GetMapping("/rango-precio")
-    public List<ServicioResponseDTO> buscarPorRangoPrecio(
+    public ResponseEntity<List<ServicioResponseDTO>> buscarPorRangoPrecio(
             @RequestParam Double min,
             @RequestParam Double max
     ) {
-        return servicioService.buscarServiciosPorRangoDePrecio(min, max)
-                .stream()
-                .map(ServicioMapper::toResponse)
-                .collect(Collectors.toList());
+        List<ServicioResponseDTO> servicios = servicioService.buscarServiciosPorRangoDePrecio(min, max);
+        return ResponseEntity.ok(servicios);
     }
 
-    // -------------------------------------------------------------------------
-    // BUSCAR POR DURACIÓN
-    // -------------------------------------------------------------------------
     @GetMapping("/duracion")
-    public List<ServicioResponseDTO> buscarPorDuracion(@RequestParam String duracion) {
-        return servicioService.buscarServiciosPorDuracion(duracion)
-                .stream()
-                .map(ServicioMapper::toResponse)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<ServicioResponseDTO>> buscarPorDuracion(@RequestParam String duracion) {
+        List<ServicioResponseDTO> servicios = servicioService.buscarServiciosPorDuracion(duracion);
+        return ResponseEntity.ok(servicios);
     }
 
-    // -------------------------------------------------------------------------
-    // ACTUALIZAR SERVICIO
-    // -------------------------------------------------------------------------
     @PutMapping("/{id}")
-    public ServicioResponseDTO actualizarServicio(
+    public ResponseEntity<ServicioResponseDTO> actualizarServicio(
             @PathVariable Long id,
-            @RequestBody ServicioUpdateDTO dto
+            @Valid @RequestBody ServicioUpdateDTO dto
     ) {
-        return servicioService.actualizarServicioDTO(id, dto);
+        ServicioResponseDTO actualizado = servicioService.actualizarServicio(id, dto);
+        return ResponseEntity.ok(actualizado);
     }
 
-    // -------------------------------------------------------------------------
-    // ELIMINAR SERVICIO
-    // -------------------------------------------------------------------------
     @DeleteMapping("/{id}")
-    public void eliminarServicio(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarServicio(@PathVariable Long id) {
         servicioService.eliminarServicio(id);
+        return ResponseEntity.noContent().build();
     }
 }

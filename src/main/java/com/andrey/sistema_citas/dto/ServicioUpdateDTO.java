@@ -1,10 +1,19 @@
 package com.andrey.sistema_citas.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
+
 public class ServicioUpdateDTO {
 
+    @Size(min = 3, max = 255, message = "El nombre debe tener entre 3 y 255 caracteres")
     private String nombre;
+
+    @Size(max = 1000, message = "La descripción no puede exceder 1000 caracteres")
     private String descripcion;
+
     private String duracion;
+
+    @Min(value = 0, message = "El precio no puede ser negativo")
     private Double precio;
 
     public ServicioUpdateDTO() {}
@@ -16,6 +25,7 @@ public class ServicioUpdateDTO {
         this.precio = precio;
     }
 
+    // Getters y Setters
     public String getNombre() {
         return nombre;
     }

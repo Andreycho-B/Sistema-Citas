@@ -16,7 +16,6 @@ public class UsuarioMapper {
         return u;
     }
 
-    // Renombrado para coincidir con el Controller
     public static UsuarioResponseDTO toResponseDTO(Usuario usuario) {
         return new UsuarioResponseDTO(
                 usuario.getId(),

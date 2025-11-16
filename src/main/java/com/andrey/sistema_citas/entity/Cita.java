@@ -14,8 +14,9 @@ public class Cita {
     @Column(name = "fecha_hora", nullable = false)
     private LocalDateTime fechaHora;
 
-    @Column(name = "estado", length = 255)
-    private String estado;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", length = 50, nullable = false)
+    private EstadoCita estado;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
@@ -33,12 +34,19 @@ public class Cita {
         // Constructor requerido por JPA
     }
 
-    public Cita(LocalDateTime fechaHora, String estado, Usuario usuario, Servicio servicio, Profesional profesional) {
+    public Cita(LocalDateTime fechaHora, EstadoCita estado, Usuario usuario, Servicio servicio, Profesional profesional) {
         this.fechaHora = fechaHora;
         this.estado = estado;
         this.usuario = usuario;
         this.servicio = servicio;
         this.profesional = profesional;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.estado == null) {
+            this.estado = EstadoCita.PENDIENTE;
+        }
     }
 
     // Getters y Setters
@@ -58,11 +66,11 @@ public class Cita {
         this.fechaHora = fechaHora;
     }
 
-    public String getEstado() {
+    public EstadoCita getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoCita estado) {
         this.estado = estado;
     }
 
@@ -95,7 +103,7 @@ public class Cita {
         return "Cita{" +
                 "id=" + id +
                 ", fechaHora=" + fechaHora +
-                ", estado='" + estado + '\'' +
+                ", estado=" + estado +
                 ", usuario=" + (usuario != null ? usuario.getNombre() : "null") +
                 ", servicio=" + (servicio != null ? servicio.getNombre() : "null") +
                 ", profesional=" + (profesional != null ? profesional.getEspecialidad() : "null") +
