@@ -8,6 +8,7 @@ import com.andrey.sistema_citas.exception.ResourceNotFoundException;
 import com.andrey.sistema_citas.mapper.ServicioMapper;
 import com.andrey.sistema_citas.repository.ServicioRepository;
 import org.springframework.data.domain.Page;
+import com.andrey.sistema_citas.exception.DuplicateResourceException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +28,7 @@ public class ServicioService {
 
     public ServicioResponseDTO crearServicio(ServicioCreateDTO dto) {
         servicioRepository.findByNombre(dto.getNombre()).ifPresent(s -> {
-            throw new RuntimeException("Ya existe un servicio con el nombre: " + dto.getNombre());
+        	throw new DuplicateResourceException("Ya existe un servicio con el nombre: " + dto.getNombre());
         });
 
         Servicio servicio = ServicioMapper.toEntity(dto);

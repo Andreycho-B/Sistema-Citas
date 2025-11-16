@@ -6,6 +6,7 @@ import com.andrey.sistema_citas.dto.ProfesionalUpdateDTO;
 import com.andrey.sistema_citas.entity.Profesional;
 import com.andrey.sistema_citas.entity.Role;
 import com.andrey.sistema_citas.entity.Usuario;
+import com.andrey.sistema_citas.exception.DuplicateResourceException;
 import com.andrey.sistema_citas.exception.ResourceNotFoundException;
 import com.andrey.sistema_citas.mapper.ProfesionalMapper;
 import com.andrey.sistema_citas.repository.ProfesionalRepository;
@@ -35,7 +36,7 @@ public class ProfesionalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + dto.getUsuarioId()));
 
         if (profesionalRepository.findByUsuario(usuario).isPresent()) {
-            throw new RuntimeException("El usuario ya está registrado como profesional");
+        	throw new DuplicateResourceException("El usuario ya está registrado como profesional");
         }
 
         usuario.addRole(Role.PROFESSIONAL);
