@@ -23,6 +23,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     List<Usuario> findUsuariosRegistradosDespuesDe(@Param("fecha") java.time.LocalDateTime fecha);
     
     // Consulta personalizada: contar usuarios por dominio de email
-    @Query("SELECT COUNT(u) FROM Usuario u WHERE u.email LIKE %:dominio%")
+    @Query("SELECT COUNT(u) FROM Usuario u WHERE u.email LIKE CONCAT('%', :dominio, '%')")
     long countByEmailDominio(@Param("dominio") String dominio);
 }

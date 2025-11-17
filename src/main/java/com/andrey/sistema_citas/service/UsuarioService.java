@@ -7,7 +7,7 @@ import com.andrey.sistema_citas.entity.Usuario;
 import com.andrey.sistema_citas.exception.ResourceNotFoundException;
 import com.andrey.sistema_citas.mapper.UsuarioMapper;
 import com.andrey.sistema_citas.repository.UsuarioRepository;
-
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +37,7 @@ public class UsuarioService {
     public Optional<Usuario> obtenerUsuarioPorId(Long id) {
         return usuarioRepository.findById(id);
     }
-
+    @Transactional
     public UsuarioResponseDTO crearUsuario(UsuarioCreateDTO dto) {
         Usuario usuario = UsuarioMapper.toEntity(dto);
 
@@ -47,7 +47,7 @@ public class UsuarioService {
         Usuario guardado = usuarioRepository.save(usuario);
         return UsuarioMapper.toResponseDTO(guardado);
     }
-
+    @Transactional
     public UsuarioResponseDTO actualizarUsuario(Long id, UsuarioUpdateDTO dto) {
 
         Usuario existente = usuarioRepository.findById(id)
@@ -59,7 +59,7 @@ public class UsuarioService {
         Usuario actualizado = usuarioRepository.save(existente);
         return UsuarioMapper.toResponseDTO(actualizado);
     }
-
+    @Transactional
     public void eliminarUsuario(Long id) {
         if (!usuarioRepository.existsById(id)) {
             throw new ResourceNotFoundException("Usuario no encontrado con id: " + id);
