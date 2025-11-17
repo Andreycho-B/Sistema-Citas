@@ -1,14 +1,25 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => authService.getCurrentUser());
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Cargar usuario al iniciar
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+    setLoading(false);
+  }, []);
 
   const login = async (email, password) => {
     const userData = await authService.login(email, password);
     setUser(userData);
+    return userData;
   };
 
   const register = async (userData) => {
@@ -26,7 +37,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
-    loading: false
+    loading
   };
 
   return (
@@ -36,11 +47,10 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Exportar por separado para evitar el warning
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth debe usarse dentro de AuthProvider');
   }
   return context;
-};
+}

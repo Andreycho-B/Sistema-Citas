@@ -26,7 +26,15 @@ export const authService = {
   },
 
   getCurrentUser() {
-    return JSON.parse(localStorage.getItem('user'));
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   },
 
   getToken() {

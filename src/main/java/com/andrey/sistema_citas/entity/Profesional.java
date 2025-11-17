@@ -2,6 +2,8 @@ package com.andrey.sistema_citas.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "profesional")
@@ -20,6 +22,9 @@ public class Profesional {
     @OneToOne
     @JoinColumn(name = "usuario_id", referencedColumnName = "id")
     private Usuario usuario;
+
+    @OneToMany(mappedBy = "profesional")
+    private List<Cita> citas = new ArrayList<>();
 
     public Profesional() {
         // Constructor requerido por JPA
@@ -62,6 +67,14 @@ public class Profesional {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
+    }
+
+    public List<Cita> getCitas() {
+        return citas;
+    }
+
+    public void setCitas(List<Cita> citas) {
+        this.citas = citas;
     }
 
     @Override
