@@ -14,7 +14,6 @@ import com.andrey.sistema_citas.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,7 @@ public class ProfesionalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + dto.getUsuarioId()));
 
         if (profesionalRepository.findByUsuario(usuario).isPresent()) {
-        	throw new DuplicateResourceException("El usuario ya está registrado como profesional");
+            throw new DuplicateResourceException("El usuario ya está registrado como profesional");
         }
 
         usuario.addRole(Role.PROFESSIONAL);
@@ -97,6 +96,10 @@ public class ProfesionalService {
         return ProfesionalMapper.toResponse(profesional);
     }
 
+    // --- Métodos de disponibilidad comentados ---
+    // Estos métodos dependen de consultas en el repositorio que comparan un String con LocalDateTime,
+    // lo cual no es fiable. La lógica de disponibilidad debe manejarse en el servicio parseando el string.
+    /*
     public List<ProfesionalResponseDTO> buscarProfesionalesDisponiblesDespuesDe(LocalDateTime fechaHora) {
         return profesionalRepository.findByHorarioDisponibleAfter(fechaHora)
                 .stream()
@@ -110,6 +113,7 @@ public class ProfesionalService {
                 .map(ProfesionalMapper::toResponse)
                 .collect(Collectors.toList());
     }
+    */
 
     public List<Object[]> obtenerEstadisticasPorEspecialidad() {
         return profesionalRepository.countProfesionalesByEspecialidad();

@@ -32,10 +32,8 @@ public class UsuarioController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> obtenerUsuarioPorId(@PathVariable Long id) {
-        Usuario u = usuarioService.obtenerUsuarioPorId(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + id));
-
-        return ResponseEntity.ok(UsuarioMapper.toResponseDTO(u));
+        UsuarioResponseDTO usuarioDTO = usuarioService.obtenerUsuarioPorId(id);
+        return ResponseEntity.ok(usuarioDTO);
     }
 
     @PostMapping

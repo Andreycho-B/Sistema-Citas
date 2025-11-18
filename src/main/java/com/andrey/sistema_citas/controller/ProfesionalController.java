@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -60,6 +59,11 @@ public class ProfesionalController {
         return ResponseEntity.ok(profesional);
     }
 
+    // --- Endpoints de disponibilidad comentados ---
+    // Estos endpoints han sido deshabilitados porque los métodos de servicio correspondientes
+    // dependían de consultas a la base de datos poco fiables (comparación de String con LocalDateTime).
+    // La lógica de disponibilidad debe ser reimplementada en el futuro.
+    /*
     @GetMapping("/disponibles")
     public ResponseEntity<List<ProfesionalResponseDTO>> buscarDisponiblesDespuesDe(@RequestParam LocalDateTime fecha) {
         List<ProfesionalResponseDTO> profesionales = profesionalService.buscarProfesionalesDisponiblesDespuesDe(fecha);
@@ -73,6 +77,7 @@ public class ProfesionalController {
         List<ProfesionalResponseDTO> profesionales = profesionalService.buscarProfesionalesDisponiblesEnRango(inicio, fin);
         return ResponseEntity.ok(profesionales);
     }
+    */
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {

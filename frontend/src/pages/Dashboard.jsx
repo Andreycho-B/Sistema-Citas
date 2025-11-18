@@ -1,407 +1,194 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useEffect, useState, useCallback } from 'react';
+import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { motion } from 'framer-motion';
 import { citaService } from '../services/citaService';
 import { profesionalService } from '../services/profesionalService';
+import { format, isAfter } from 'date-fns';
+import { es } from 'date-fns/locale';
+
+// Componente para mostrar una tarjeta de cita de forma reutilizable
+const CitaCard = ({ cita }) => {
+  const estadoColor = {
+    PENDIENTE: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    CONFIRMADA: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+    COMPLETADA: 'bg-green-100 text-green-800 border-green-200',
+    CANCELADA: 'bg-gray-100 text-gray-800 border-gray-200',
+  };
+
+  return (
+    <motion.div 
+      className={`p-4 border rounded-lg ${estadoColor[cita.estado]}`}
+      whileHover={{ scale: 1.02 }}
+    >
+      <p className="font-semibold">{cita.servicio.nombre}</p>
+      <p className="text-sm">con {cita.profesional.usuario.nombre}</p>
+      <p className="text-xs mt-1">
+        {format(new Date(cita.fechaHora), "PPP 'a las' p", { locale: es })}
+      </p>
+    </motion.div>
+  );
+};
 
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
-    proximasCitas: 0,
-    citasCompletadas: 0,
-    profesionales: 0
-  });
+  const [stats, setStats] = useState({ proximasCitas: 0, citasCompletadas: 0, profesionales: 0 });
+  const [proximasCitasList, setProximasCitasList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadStats();
-  }, [user]);
-
-  const loadStats = async () => {
+  // Usamos useCallback para estabilizar la función y evitar advertencias de dependencias en useEffect.
+  // Esto mejora el rendimiento al prevenir que la función se recree en cada renderizado.
+  const loadStatsAndCitas = useCallback(async () => {
+    if (!user) return;
+    
     try {
-      const profesionales = await profesionalService.obtenerTodosLosProfesionales();
+      setLoading(true);
+      // Cargamos estadísticas y citas en paralelo para optimizar la carga.
+      const [profesionalesRes, citasRes] = await Promise.all([
+        profesionalService.obtenerTodosLosProfesionales(),
+        citaService.obtenerCitasPorUsuario(user.id)
+      ]);
+
+      const ahora = new Date();
+      const proximas = citasRes.filter(cita => 
+        isAfter(new Date(cita.fechaHora), ahora) && 
+        (cita.estado === 'PENDIENTE' || cita.estado === 'CONFIRMADA')
+      );
+      
+      const completadas = citasRes.filter(cita => cita.estado === 'COMPLETADA');
+
       setStats({
-        proximasCitas: 0,
-        citasCompletadas: 0,
-        profesionales: profesionales.length
+        proximasCitas: proximas.length,
+        citasCompletadas: completadas.length,
+        profesionales: profesionalesRes.length
       });
+      
+      // Ordenamos las próximas citas por fecha para mostrar las más urgentes primero.
+      proximas.sort((a, b) => new Date(a.fechaHora) - new Date(b.fechaHora));
+      setProximasCitasList(proximas.slice(0, 3));
+
     } catch (error) {
-      console.error('Error al cargar estadísticas:', error);
+      console.error('Error al cargar datos del dashboard:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]); // La función depende del usuario. Si el usuario cambia, se recarga la data.
 
-  const quickActions = [
-    {
-      title: 'Agendar Cita',
-      description: 'Reserva tu próxima sesión',
-      icon: '📅',
-      action: () => navigate('/citas/nueva'),
-      color: 'cyan'
-    },
-    {
-      title: 'Ver Profesionales',
-      description: 'Encuentra tu especialista',
-      icon: '👥',
-      action: () => navigate('/profesionales'),
-      color: 'purple'
-    },
-    {
-      title: 'Explorar Servicios',
-      description: 'Descubre nuestras terapias',
-      icon: '✨',
-      action: () => navigate('/servicios'),
-      color: 'blue'
-    },
-    {
-      title: 'Mi Perfil',
-      description: 'Actualiza tu información',
-      icon: '👤',
-      action: () => navigate('/perfil'),
-      color: 'gray'
-    }
-  ];
+  useEffect(() => {
+    loadStatsAndCitas();
+  }, [loadStatsAndCitas]); // El efecto ahora depende de la función estabilizada, resolviendo la advertencia.
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen"><p>Cargando...</p></div>;
+  }
 
   return (
-    <div className="dashboard">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
-      <div className="dashboard-container">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
         {/* Welcome Section */}
-        <motion.div 
-          className="welcome-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="welcome-title">Hola, {user?.nombre}</h1>
-          <p className="welcome-subtitle">Bienvenido a tu espacio de bienestar emocional</p>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-4xl font-extrabold text-gray-900 font-serif italic">
+            Hola, {user?.nombre}
+          </h1>
+          <p className="mt-2 text-lg text-gray-600">
+            Bienvenido a tu espacio de bienestar emocional
+          </p>
         </motion.div>
 
-        {/* Stats Cards */}
-        <div className="stats-grid">
-          <motion.div 
-            className="stat-card cyan"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
-          >
-            <div className="stat-icon">📅</div>
-            <div className="stat-content">
-              <h3 className="stat-value">{stats.proximasCitas}</h3>
-              <p className="stat-label">Próximas Citas</p>
+        {/* Stats Grid */}
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <motion.div className="bg-white overflow-hidden shadow rounded-lg" whileHover={{ y: -4 }}>
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-cyan-500 rounded-md p-3">
+                  <p className="text-white text-2xl">📅</p>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Próximas Citas</dt>
+                    <dd className="text-lg font-medium text-gray-900">{stats.proximasCitas}</dd>
+                  </dl>
+                </div>
+              </div>
             </div>
           </motion.div>
 
-          <motion.div 
-            className="stat-card green"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            <div className="stat-icon">✅</div>
-            <div className="stat-content">
-              <h3 className="stat-value">{stats.citasCompletadas}</h3>
-              <p className="stat-label">Sesiones Completadas</p>
+          <motion.div className="bg-white overflow-hidden shadow rounded-lg" whileHover={{ y: -4 }}>
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
+                  <p className="text-white text-2xl">✅</p>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Sesiones Completadas</dt>
+                    <dd className="text-lg font-medium text-gray-900">{stats.citasCompletadas}</dd>
+                  </dl>
+                </div>
+              </div>
             </div>
           </motion.div>
-
-          <motion.div 
-            className="stat-card purple"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-          >
-            <div className="stat-icon">👥</div>
-            <div className="stat-content">
-              <h3 className="stat-value">{stats.profesionales}</h3>
-              <p className="stat-label">Profesionales Disponibles</p>
+          
+          <motion.div className="bg-white overflow-hidden shadow rounded-lg" whileHover={{ y: -4 }}>
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                  <p className="text-white text-2xl">👥</p>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">Profesionales</dt>
+                    <dd className="text-lg font-medium text-gray-900">{stats.profesionales}</dd>
+                  </dl>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
 
-        {/* Quick Actions */}
-        <motion.div
-          className="section"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
-          <h2 className="section-title">Acciones Rápidas</h2>
-          <div className="actions-grid">
-            {quickActions.map((action, index) => (
-              <motion.button
-                key={index}
-                className={`action-card ${action.color}`}
-                onClick={action.action}
-                whileHover={{ scale: 1.02, y: -4 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="action-icon">{action.icon}</div>
-                <h3 className="action-title">{action.title}</h3>
-                <p className="action-description">{action.description}</p>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Info Section */}
-        <div className="info-grid">
-          <motion.div 
-            className="info-card"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-          >
-            <h3 className="info-title">¿Por qué elegirnos?</h3>
-            <ul className="info-list">
-              <li>✓ Profesionales certificados en salud mental</li>
-              <li>✓ Sesiones personalizadas a tus necesidades</li>
-              <li>✓ Confidencialidad y privacidad garantizada</li>
-              <li>✓ Horarios flexibles y accesibles</li>
-            </ul>
+        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+          {/* Próximas Citas */}
+          <motion.div className="bg-white shadow rounded-lg p-6" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Tus Próximas Sesiones</h2>
+            {proximasCitasList.length > 0 ? (
+              <div className="space-y-3">
+                {proximasCitasList.map(cita => <CitaCard key={cita.id} cita={cita} />)}
+              </div>
+            ) : (
+              <p className="text-gray-500">No tienes próximas citas programadas.</p>
+            )}
+            <button 
+              onClick={() => navigate('/citas/nueva')}
+              className="mt-4 w-full bg-black text-white py-2 px-4 rounded-md hover:bg-cyan-600 transition-colors"
+            >
+              Agendar Nueva Cita
+            </button>
           </motion.div>
 
-          <motion.div 
-            className="info-card highlight"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-          >
-            <h3 className="info-title">Tu Progreso</h3>
-            <p className="info-text">
-              Comienza tu camino hacia el bienestar emocional. Agenda tu primera sesión hoy.
-            </p>
-            <button className="info-button" onClick={() => navigate('/citas/nueva')}>
-              Agendar Primera Sesión
-            </button>
+          {/* Acciones Rápidas */}
+          <motion.div className="bg-white shadow rounded-lg p-6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Acciones Rápidas</h2>
+            <div className="space-y-3">
+              <button onClick={() => navigate('/profesionales')} className="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                <p className="font-medium">Explorar Profesionales</p>
+                <p className="text-sm text-gray-500">Encuentra al especialista ideal para ti.</p>
+              </button>
+              <button onClick={() => navigate('/servicios')} className="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                <p className="font-medium">Ver Todos los Servicios</p>
+                <p className="text-sm text-gray-500">Conoce nuestras terapias y programas.</p>
+              </button>
+              <button onClick={() => navigate('/perfil')} className="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                <p className="font-medium">Mi Perfil</p>
+                <p className="text-sm text-gray-500">Gestiona tu información personal.</p>
+              </button>
+            </div>
           </motion.div>
         </div>
       </div>
-
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,600&display=swap');
-
-        .dashboard {
-          min-height: 100vh;
-          background-color: #FAFAFA;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        .dashboard-container {
-          max-width: 1400px;
-          margin: 0 auto;
-          padding: 3rem 2rem;
-        }
-
-        .welcome-section {
-          margin-bottom: 3rem;
-        }
-
-        .welcome-title {
-          font-size: 3rem;
-          font-weight: 600;
-          font-family: 'Playfair Display', serif;
-          font-style: italic;
-          color: #000000;
-          margin: 0 0 0.5rem 0;
-          letter-spacing: -0.01em;
-        }
-
-        .welcome-subtitle {
-          font-size: 1.125rem;
-          color: #666666;
-          margin: 0;
-        }
-
-        .stats-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1.5rem;
-          margin-bottom: 3rem;
-        }
-
-        .stat-card {
-          background: white;
-          border-radius: 16px;
-          padding: 2rem;
-          display: flex;
-          align-items: center;
-          gap: 1.5rem;
-          border: 1px solid #E5E5E5;
-          transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 12px 24px rgba(0,0,0,0.08);
-        }
-
-        .stat-card.cyan {
-          border-left: 4px solid #06B6D4;
-        }
-
-        .stat-card.green {
-          border-left: 4px solid #10B981;
-        }
-
-        .stat-card.purple {
-          border-left: 4px solid #8B5CF6;
-        }
-
-        .stat-icon {
-          font-size: 3rem;
-        }
-
-        .stat-content {
-          flex: 1;
-        }
-
-        .stat-value {
-          font-size: 2.5rem;
-          font-weight: 700;
-          color: #000000;
-          margin: 0 0 0.25rem 0;
-        }
-
-        .stat-label {
-          font-size: 0.875rem;
-          color: #666666;
-          margin: 0;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          font-weight: 600;
-        }
-
-        .section {
-          margin-bottom: 3rem;
-        }
-
-        .section-title {
-          font-size: 1.75rem;
-          font-weight: 600;
-          color: #000000;
-          margin: 0 0 1.5rem 0;
-        }
-
-        .actions-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-          gap: 1.5rem;
-        }
-
-        .action-card {
-          background: white;
-          border: 1px solid #E5E5E5;
-          border-radius: 16px;
-          padding: 2rem;
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .action-card:hover {
-          box-shadow: 0 12px 24px rgba(0,0,0,0.08);
-        }
-
-        .action-icon {
-          font-size: 3rem;
-          margin-bottom: 1rem;
-        }
-
-        .action-title {
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: #000000;
-          margin: 0 0 0.5rem 0;
-        }
-
-        .action-description {
-          font-size: 0.875rem;
-          color: #666666;
-          margin: 0;
-        }
-
-        .info-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-          gap: 1.5rem;
-        }
-
-        .info-card {
-          background: white;
-          border: 1px solid #E5E5E5;
-          border-radius: 16px;
-          padding: 2rem;
-        }
-
-        .info-card.highlight {
-          background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
-          border-color: #06B6D4;
-        }
-
-        .info-title {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #000000;
-          margin: 0 0 1rem 0;
-        }
-
-        .info-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-
-        .info-list li {
-          color: #666666;
-          margin-bottom: 0.75rem;
-          font-size: 0.9375rem;
-        }
-
-        .info-text {
-          color: #666666;
-          margin: 0 0 1.5rem 0;
-          line-height: 1.6;
-        }
-
-        .info-button {
-          width: 100%;
-          padding: 0.875rem;
-          background-color: #000000;
-          color: white;
-          border: none;
-          border-radius: 10px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .info-button:hover {
-          background-color: #06B6D4;
-          transform: translateY(-2px);
-        }
-
-        @media (max-width: 768px) {
-          .dashboard-container {
-            padding: 2rem 1rem;
-          }
-
-          .welcome-title {
-            font-size: 2rem;
-          }
-
-          .stats-grid,
-          .actions-grid,
-          .info-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </div>
   );
 }

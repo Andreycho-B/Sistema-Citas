@@ -94,9 +94,13 @@ export default function Profesionales() {
                 <p className="professional-email">
                   {profesional.usuario?.email}
                 </p>
-                <button className="contact-button">
-                  Agendar Cita
-                </button>
+				<button 
+				  className="contact-button"
+				  // eslint-disable-next-line no-undef
+				  onClick={() => navigate(`/citas/nueva?profesionalId=${profesional.id}`)} // <-- Añade esta línea
+				>
+				  Agendar Cita
+				</button>
               </motion.div>
             ))}
           </div>

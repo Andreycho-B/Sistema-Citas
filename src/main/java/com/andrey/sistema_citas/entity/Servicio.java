@@ -1,9 +1,17 @@
 package com.andrey.sistema_citas.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "servicio")
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
 public class Servicio {
 
     @Id
@@ -22,64 +30,10 @@ public class Servicio {
     @Column
     private Double precio;
 
-    public Servicio() {}
-
     public Servicio(String nombre, String descripcion, String duracion, Double precio) {
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.duracion = duracion;
         this.precio = precio;
-    }
-
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public String getDuracion() {
-        return duracion;
-    }
-
-    public void setDuracion(String duracion) {
-        this.duracion = duracion;
-    }
-
-    public Double getPrecio() {
-        return precio;
-    }
-
-    public void setPrecio(Double precio) {
-        this.precio = precio;
-    }
-
-    @Override
-    public String toString() {
-        return "Servicio{" +
-                "id=" + id +
-                ", nombre='" + nombre + '\'' +
-                ", descripcion='" + descripcion + '\'' +
-                ", duracion='" + duracion + '\'' +
-                ", precio=" + precio +
-                '}';
     }
 }

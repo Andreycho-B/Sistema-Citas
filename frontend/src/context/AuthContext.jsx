@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
 
 const AuthContext = createContext(null);
@@ -7,14 +7,16 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Cargar usuario al iniciar
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
-    if (currentUser) {
+    
+    // Envuelve TODAS las actualizaciones de estado en un setTimeout
+    // para evitar renderizados síncronos en cascada.
+    setTimeout(() => {
       setUser(currentUser);
-    }
-    setLoading(false);
-  }, []);
+      setLoading(false);
+    }, 0);
+  }, []); // El array de dependencias vacío es correcto aquí.
 
   const login = async (email, password) => {
     const userData = await authService.login(email, password);
@@ -47,10 +49,4 @@ export function AuthProvider({ children }) {
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de AuthProvider');
-  }
-  return context;
-}
+export default AuthContext;

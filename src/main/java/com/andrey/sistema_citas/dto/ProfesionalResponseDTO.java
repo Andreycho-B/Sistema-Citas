@@ -1,15 +1,14 @@
 package com.andrey.sistema_citas.dto;
 
-import java.time.LocalDateTime;
-
 public class ProfesionalResponseDTO {
 
     private Long id;
     private String especialidad;
-    private LocalDateTime horarioDisponible;
+    private String horarioDisponible; // Cambiado a String
     private Long usuarioId;
     private String usuarioNombre;
 
+    // Getters y Setters
     public Long getId() {
         return id;
     }
@@ -26,11 +25,11 @@ public class ProfesionalResponseDTO {
         this.especialidad = especialidad;
     }
 
-    public LocalDateTime getHorarioDisponible() {
+    public String getHorarioDisponible() {
         return horarioDisponible;
     }
 
-    public void setHorarioDisponible(LocalDateTime horarioDisponible) {
+    public void setHorarioDisponible(String horarioDisponible) {
         this.horarioDisponible = horarioDisponible;
     }
 

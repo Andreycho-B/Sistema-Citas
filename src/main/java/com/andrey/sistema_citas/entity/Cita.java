@@ -1,10 +1,19 @@
 package com.andrey.sistema_citas.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "cita")
+@Getter
+@Setter
+@NoArgsConstructor
+@ToString
 public class Cita {
 
     @Id
@@ -30,10 +39,6 @@ public class Cita {
     @JoinColumn(name = "profesional_id", nullable = false)
     private Profesional profesional;
 
-    public Cita() {
-        // Constructor requerido por JPA
-    }
-
     public Cita(LocalDateTime fechaHora, EstadoCita estado, Usuario usuario, Servicio servicio, Profesional profesional) {
         this.fechaHora = fechaHora;
         this.estado = estado;
@@ -47,66 +52,5 @@ public class Cita {
         if (this.estado == null) {
             this.estado = EstadoCita.PENDIENTE;
         }
-    }
-
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getFechaHora() {
-        return fechaHora;
-    }
-
-    public void setFechaHora(LocalDateTime fechaHora) {
-        this.fechaHora = fechaHora;
-    }
-
-    public EstadoCita getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoCita estado) {
-        this.estado = estado;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public Servicio getServicio() {
-        return servicio;
-    }
-
-    public void setServicio(Servicio servicio) {
-        this.servicio = servicio;
-    }
-
-    public Profesional getProfesional() {
-        return profesional;
-    }
-
-    public void setProfesional(Profesional profesional) {
-        this.profesional = profesional;
-    }
-
-    @Override
-    public String toString() {
-        return "Cita{" +
-                "id=" + id +
-                ", fechaHora=" + fechaHora +
-                ", estado=" + estado +
-                ", usuario=" + (usuario != null ? usuario.getNombre() : "null") +
-                ", servicio=" + (servicio != null ? servicio.getNombre() : "null") +
-                ", profesional=" + (profesional != null ? profesional.getEspecialidad() : "null") +
-                '}';
     }
 }

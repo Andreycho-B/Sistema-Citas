@@ -1,6 +1,7 @@
 package com.andrey.sistema_citas.repository;
 
 import com.andrey.sistema_citas.entity.Cita;
+import com.andrey.sistema_citas.entity.EstadoCita; // Import añadido
 import com.andrey.sistema_citas.entity.Profesional;
 import com.andrey.sistema_citas.entity.Servicio;
 import com.andrey.sistema_citas.entity.Usuario;
@@ -21,25 +22,28 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     // Buscar citas por servicio
     List<Cita> findByServicio(Servicio servicio);
 
-    // Buscar citas por estado
-    List<Cita> findByEstado(String estado);
+    // Buscar citas por estado (ahora usa el enum para seguridad de tipos)
+    List<Cita> findByEstado(EstadoCita estado);
 
     // Buscar citas por fecha y hora exacta
     List<Cita> findByFechaHora(LocalDateTime fechaHora);
 
+ // Buscar citas en un rango de fechas y horas
+    List<Cita> findByFechaHoraBetween(LocalDateTime inicio, LocalDateTime fin);
+    
     // Buscar citas después de una fecha y hora
     List<Cita> findByFechaHoraAfter(LocalDateTime fechaHora);
 
     // Buscar citas antes de una fecha y hora
     List<Cita> findByFechaHoraBefore(LocalDateTime fechaHora);
 
-    // Consulta personalizada: citas por usuario y estado
+    // Consulta personalizada: citas por usuario y estado (usa el enum)
     @Query("SELECT c FROM Cita c WHERE c.usuario.id = :usuarioId AND c.estado = :estado")
-    List<Cita> findCitasByUsuarioAndEstado(@Param("usuarioId") Long usuarioId, @Param("estado") String estado);
+    List<Cita> findCitasByUsuarioAndEstado(@Param("usuarioId") Long usuarioId, @Param("estado") EstadoCita estado);
 
-    // Consulta personalizada: citas por profesional y estado
+    // Consulta personalizada: citas por profesional y estado (usa el enum)
     @Query("SELECT c FROM Cita c WHERE c.profesional.id = :profesionalId AND c.estado = :estado")
-    List<Cita> findCitasByProfesionalAndEstado(@Param("profesionalId") Long profesionalId, @Param("estado") String estado);
+    List<Cita> findCitasByProfesionalAndEstado(@Param("profesionalId") Long profesionalId, @Param("estado") EstadoCita estado);
 
     // Consulta personalizada: citas con información completa (join con usuario, servicio y profesional)
     @Query("SELECT c, u, s, p FROM Cita c JOIN c.usuario u JOIN c.servicio s JOIN c.profesional p WHERE c.fechaHora BETWEEN :inicio AND :fin")
@@ -52,6 +56,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     // Consulta personalizada: próximo horario disponible para un profesional
     @Query("SELECT MIN(c.fechaHora) FROM Cita c WHERE c.profesional.id = :profesionalId AND c.fechaHora > :fechaHora")
     LocalDateTime findProximaCitaByProfesional(@Param("profesionalId") Long profesionalId, @Param("fechaHora") LocalDateTime fechaHora);
+    
     // Buscar citas por usuario (ID)
     List<Cita> findByUsuarioId(Long usuarioId);
     
@@ -64,16 +69,20 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     // Verificar si existe una cita para un usuario en un rango de fechas
     boolean existsByUsuarioAndFechaHoraBetween(Usuario usuario, LocalDateTime inicio, LocalDateTime fin);
     
-    // Consulta personalizada: citas pendientes
+    // --- Métodos reemplazados por versiones más seguras con enums ---
+    // Las siguientes consultas @Query son menos seguras que usar métodos derivados con enums.
+    // Se recomienda usar findByEstado(EstadoCita.PENDIENTE) y findByEstado(EstadoCita.CONFIRMADA)
+    /*
     @Query("SELECT c FROM Cita c WHERE c.estado = 'PENDIENTE'")
     List<Cita> findCitasPendientes();
     
-    // Consulta personalizada: citas confirmadas
     @Query("SELECT c FROM Cita c WHERE c.estado = 'CONFIRMADA'")
     List<Cita> findCitasConfirmadas();
+    */
     
     // Consulta personalizada: citas próximas (en las próximas 24 horas)
     @Query("SELECT c FROM Cita c WHERE c.fechaHora BETWEEN :ahora AND :mañana")
     List<Cita> findCitasProximas(@Param("ahora") LocalDateTime ahora, @Param("mañana") LocalDateTime mañana);
-	List<Cita> findByFechaHoraBetween(LocalDateTime inicio, LocalDateTime fin);
+
+    // Método findByFechaHoraBetween duplicado eliminado. Ya existe uno arriba.
 }

@@ -27,7 +27,10 @@ export const profesionalService = {
   },
 
   async buscarPorEspecialidad(especialidad) {
-    const response = await api.get(`/profesionales/especialidad/${especialidad}`);
+    // Corregido: usa el endpoint /buscar con un query parameter
+    const response = await api.get('/profesionales/buscar', { 
+      params: { especialidad } 
+    });
     return response.data;
   }
 };

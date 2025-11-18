@@ -1,15 +1,15 @@
 package com.andrey.sistema_citas.dto;
 
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
 
 public class ProfesionalUpdateDTO {
 
     @Size(min = 3, max = 255, message = "La especialidad debe tener entre 3 y 255 caracteres")
     private String especialidad;
 
-    private LocalDateTime horarioDisponible;
+    private String horarioDisponible; // Cambiado a String
 
+    // Getters y Setters
     public String getEspecialidad() {
         return especialidad;
     }
@@ -18,11 +18,11 @@ public class ProfesionalUpdateDTO {
         this.especialidad = especialidad;
     }
 
-    public LocalDateTime getHorarioDisponible() {
+    public String getHorarioDisponible() {
         return horarioDisponible;
     }
 
-    public void setHorarioDisponible(LocalDateTime horarioDisponible) {
+    public void setHorarioDisponible(String horarioDisponible) {
         this.horarioDisponible = horarioDisponible;
     }
 }

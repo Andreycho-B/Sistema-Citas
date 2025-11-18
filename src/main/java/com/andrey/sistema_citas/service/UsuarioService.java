@@ -34,9 +34,12 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<Usuario> obtenerUsuarioPorId(Long id) {
-        return usuarioRepository.findById(id);
+    public UsuarioResponseDTO obtenerUsuarioPorId(Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + id));
+        return UsuarioMapper.toResponseDTO(usuario);
     }
+
     @Transactional
     public UsuarioResponseDTO crearUsuario(UsuarioCreateDTO dto) {
         Usuario usuario = UsuarioMapper.toEntity(dto);
@@ -47,6 +50,7 @@ public class UsuarioService {
         Usuario guardado = usuarioRepository.save(usuario);
         return UsuarioMapper.toResponseDTO(guardado);
     }
+
     @Transactional
     public UsuarioResponseDTO actualizarUsuario(Long id, UsuarioUpdateDTO dto) {
 
@@ -59,6 +63,7 @@ public class UsuarioService {
         Usuario actualizado = usuarioRepository.save(existente);
         return UsuarioMapper.toResponseDTO(actualizado);
     }
+
     @Transactional
     public void eliminarUsuario(Long id) {
         if (!usuarioRepository.existsById(id)) {
@@ -78,5 +83,3 @@ public class UsuarioService {
         return usuarioRepository.findByEmail(email);
     }
 }
-
-

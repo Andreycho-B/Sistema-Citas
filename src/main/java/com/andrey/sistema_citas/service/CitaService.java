@@ -50,7 +50,7 @@ public class CitaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Profesional no encontrado con ID: " + dto.getProfesionalId()));
 
         if (dto.getFechaHora().isBefore(LocalDateTime.now())) {
-        	throw new BusinessRuleException("No se pueden agendar citas en fechas pasadas");
+            throw new BusinessRuleException("No se pueden agendar citas en fechas pasadas");
         }
 
         int duracionMinutos = parsearDuracion(servicio.getDuracion());
@@ -59,14 +59,14 @@ public class CitaService {
                 profesional, dto.getFechaHora(), dto.getFechaHora().plusMinutes(duracionMinutos));
         
         if (profesionalOcupado) {
-        	throw new BusinessRuleException("El profesional no está disponible en ese horario");
+            throw new BusinessRuleException("El profesional no está disponible en ese horario");
         }
 
         boolean usuarioOcupado = citaRepository.existsByUsuarioAndFechaHoraBetween(
                 usuario, dto.getFechaHora(), dto.getFechaHora().plusMinutes(duracionMinutos));
         
         if (usuarioOcupado) {
-        	throw new BusinessRuleException("Ya tienes una cita programada en ese horario");
+            throw new BusinessRuleException("Ya tienes una cita programada en ese horario");
         }
 
         Cita cita = new Cita(dto.getFechaHora(), EstadoCita.PENDIENTE, usuario, servicio, profesional);
@@ -103,24 +103,18 @@ public class CitaService {
     }
 
     public List<CitaResponseDTO> obtenerCitasPorEstado(EstadoCita estado) {
-        return citaRepository.findByEstado(estado.name())
+        return citaRepository.findByEstado(estado)
                 .stream()
                 .map(CitaMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     public List<CitaResponseDTO> obtenerCitasPendientes() {
-        return citaRepository.findCitasPendientes()
-                .stream()
-                .map(CitaMapper::toResponse)
-                .collect(Collectors.toList());
+        return obtenerCitasPorEstado(EstadoCita.PENDIENTE);
     }
 
     public List<CitaResponseDTO> obtenerCitasConfirmadas() {
-        return citaRepository.findCitasConfirmadas()
-                .stream()
-                .map(CitaMapper::toResponse)
-                .collect(Collectors.toList());
+        return obtenerCitasPorEstado(EstadoCita.CONFIRMADA);
     }
 
     public CitaResponseDTO actualizarCita(Long id, CitaUpdateDTO dto) {

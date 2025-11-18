@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { motion } from 'framer-motion';
 
 export default function Navbar() {
@@ -23,15 +23,21 @@ export default function Navbar() {
 
   // Agregar items según rol
   if (user?.roles?.includes('ADMIN')) {
-    navItems.push({ path: '/admin', label: 'Admin', icon: '⚙️' });
+    navItems.push({ path: '/admin/dashboard', label: 'Panel Admin', icon: '⚙️' });
   }
 
   if (user?.roles?.includes('PROFESSIONAL')) {
-    navItems.push({ path: '/profesional', label: 'Panel Pro', icon: '💼' });
+    navItems.push({ path: '/professional/dashboard', label: 'Mi Panel', icon: '💼' });
   }
 
+  // Usamos motion.nav para eliminar el warning y añadir una animación sutil
   return (
-    <nav className="navbar">
+    <motion.nav 
+      className="navbar"
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 70, damping: 10 }}
+    >
       <div className="navbar-container">
         {/* Logo */}
         <Link to="/dashboard" className="navbar-brand">
@@ -59,16 +65,24 @@ export default function Navbar() {
 
         {/* User Menu */}
         <div className="nav-user">
-          <div className="user-info">
-            <span className="user-name">{user?.nombre}</span>
-            <span className="user-role">
-              {user?.roles?.includes('ADMIN') ? 'Administrador' : 
-               user?.roles?.includes('PROFESSIONAL') ? 'Profesional' : 'Usuario'}
-            </span>
-          </div>
-          <button onClick={handleLogout} className="logout-button">
-            Salir
-          </button>
+          {user ? (
+            <>
+              <div className="user-info">
+                <span className="user-name">{user.nombre.split(' ')[0]}</span>
+                <span className="user-role">
+                  {user.roles.includes('ADMIN') ? 'Administrador' : 
+                   user.roles.includes('PROFESSIONAL') ? 'Profesional' : 'Usuario'}
+                </span>
+              </div>
+              <button onClick={handleLogout} className="logout-button">
+                Salir
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="login-button">
+              Iniciar Sesión
+            </Link>
+          )}
         </div>
       </div>
 
@@ -181,20 +195,34 @@ export default function Navbar() {
           color: #666666;
         }
 
-        .logout-button {
+        .logout-button, .login-button {
           padding: 0.5rem 1rem;
-          background-color: #000000;
-          color: #FFFFFF;
-          border: none;
           border-radius: 8px;
           font-size: 0.875rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s ease;
+          text-decoration: none;
+          border: none;
         }
 
+        .logout-button {
+          background-color: #000000;
+          color: #FFFFFF;
+        }
+        
         .logout-button:hover {
           background-color: #06B6D4;
+          transform: translateY(-1px);
+        }
+
+        .login-button {
+          background-color: #06B6D4;
+          color: #FFFFFF;
+        }
+
+        .login-button:hover {
+          background-color: #000000;
           transform: translateY(-1px);
         }
 
@@ -212,6 +240,6 @@ export default function Navbar() {
           }
         }
       `}</style>
-    </nav>
+    </motion.nav>
   );
 }

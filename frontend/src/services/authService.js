@@ -31,6 +31,9 @@ export const authService = {
       try {
         return JSON.parse(userStr);
       } catch (e) {
+        // Es una buena práctica registrar el error para depuración,
+        // incluso si no se toma ninguna otra acción.
+        console.error("Error al parsear el usuario desde localStorage:", e);
         return null;
       }
     }

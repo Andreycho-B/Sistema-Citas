@@ -21,8 +21,18 @@ export const citaService = {
     return response.data;
   },
 
-  async cambiarEstadoCita(id, nuevoEstado) {
-    const response = await api.patch(`/citas/${id}/estado`, { nuevoEstado });
+  async confirmarCita(id) {
+    const response = await api.patch(`/citas/${id}/confirmar`);
+    return response.data;
+  },
+
+  async cancelarCita(id) {
+    const response = await api.patch(`/citas/${id}/cancelar`);
+    return response.data;
+  },
+
+  async completarCita(id) {
+    const response = await api.patch(`/citas/${id}/completar`);
     return response.data;
   },
 

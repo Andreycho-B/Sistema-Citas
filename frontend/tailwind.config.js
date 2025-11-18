@@ -1,15 +1,15 @@
+/* eslint-disable no-undef */
+
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {
       fontFamily: {
-        'anton': ['Anton', 'sans-serif'],
-        'montserrat': ['Montserrat', 'sans-serif'],
-        'opensans': ['Open Sans', 'sans-serif'],
+        'serif': ['Playfair Display', 'serif'],
+        'sans': ['Inter', 'sans-serif'],
       },
     },
   },
