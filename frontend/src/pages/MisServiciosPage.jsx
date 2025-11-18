@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/useAuth';
 import Navbar from '../components/Navbar';
 import { motion } from 'framer-motion';
 import api from '../services/api';
+import { profesionalService } from '../services/profesionalService';
 import { useToast } from '../hooks/useToast';
 
 export default function MisServiciosPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { showToast } = useToast();
   
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [profesionalId, setProfesionalId] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editingServicio, setEditingServicio] = useState(null);
   const [formData, setFormData] = useState({
@@ -21,8 +25,24 @@ export default function MisServiciosPage() {
   });
 
   useEffect(() => {
-    loadMisServicios();
-  }, []);
+    loadProfesionalData();
+  }, [user]);
+
+  const loadProfesionalData = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      // Obtener el profesional asociado al usuario
+      const profesional = await profesionalService.obtenerProfesionalPorUsuarioId(user.id);
+      setProfesionalId(profesional.id);
+      await loadMisServicios();
+    } catch (error) {
+      console.error('Error al cargar datos del profesional:', error);
+      showToast('Error: No se encontró perfil de profesional', 'error');
+      setLoading(false);
+    }
+  };
 
   const loadMisServicios = async () => {
     try {
@@ -40,14 +60,23 @@ export default function MisServiciosPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!profesionalId && !editingServicio) {
+      showToast('Error: No se pudo identificar el profesional', 'error');
+      return;
+    }
+    
     try {
       if (editingServicio) {
         // Actualizar servicio existente
         await api.put(`/api/servicios/${editingServicio.id}`, formData);
         showToast('Servicio actualizado exitosamente', 'success');
       } else {
-        // Crear nuevo servicio
-        await api.post('/api/servicios', formData);
+        // Crear nuevo servicio - incluir profesionalId
+        const dataToSend = {
+          ...formData,
+          profesionalId: profesionalId
+        };
+        await api.post('/api/servicios', dataToSend);
         showToast('Servicio creado exitosamente', 'success');
       }
       

@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { profesionalService } from '../services/profesionalService';
+import { useToast } from '../hooks/useToast';
 
 export default function Profesionales() {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
   const [profesionales, setProfesionales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [especialidadFilter, setEspecialidadFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     loadProfesionales();
@@ -23,8 +29,32 @@ export default function Profesionales() {
     }
   };
 
+  const handleBuscarPorEspecialidad = async () => {
+    if (!especialidadFilter.trim()) {
+      loadProfesionales();
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const data = await profesionalService.buscarPorEspecialidad(especialidadFilter);
+      setProfesionales(data);
+    } catch (error) {
+      console.error('Error al buscar profesionales:', error);
+      showToast('Error al buscar profesionales', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLimpiarFiltros = () => {
+    setSearchTerm('');
+    setEspecialidadFilter('');
+    loadProfesionales();
+  };
+
   const filteredProfesionales = profesionales.filter(prof =>
-    prof.usuario?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    prof.usuarioNombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     prof.especialidad?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -43,20 +73,48 @@ export default function Profesionales() {
           <p className="page-subtitle">Encuentra al especialista ideal para ti</p>
         </motion.div>
 
-        {/* Search Bar */}
+        {/* Search and Filters */}
         <motion.div 
           className="search-container"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          <input
-            type="text"
-            placeholder="Buscar por nombre o especialidad..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              placeholder="Buscar por nombre..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input flex-1"
+            />
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="filter-button"
+            >
+              Filtros
+            </button>
+          </div>
+          
+          {showFilters && (
+            <div className="filters-panel">
+              <input
+                type="text"
+                placeholder="Buscar por especialidad..."
+                value={especialidadFilter}
+                onChange={(e) => setEspecialidadFilter(e.target.value)}
+                className="search-input mb-2"
+              />
+              <div className="flex gap-2">
+                <button onClick={handleBuscarPorEspecialidad} className="apply-filter-button">
+                  Aplicar Filtro
+                </button>
+                <button onClick={handleLimpiarFiltros} className="clear-filter-button">
+                  Limpiar
+                </button>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Profesionales Grid */}
@@ -83,21 +141,20 @@ export default function Profesionales() {
                 whileHover={{ y: -8 }}
               >
                 <div className="professional-avatar">
-                  {profesional.usuario?.nombre?.charAt(0) || 'P'}
+                  {profesional.usuarioNombre?.charAt(0) || 'P'}
                 </div>
                 <h3 className="professional-name">
-                  {profesional.usuario?.nombre || 'Nombre no disponible'}
+                  {profesional.usuarioNombre || 'Nombre no disponible'}
                 </h3>
                 <span className="professional-specialty">
                   {profesional.especialidad}
                 </span>
-                <p className="professional-email">
-                  {profesional.usuario?.email}
+                <p className="professional-schedule">
+                  {profesional.horarioDisponible || 'Horario no especificado'}
                 </p>
 				<button 
 				  className="contact-button"
-				  // eslint-disable-next-line no-undef
-				  onClick={() => navigate(`/citas/nueva?profesionalId=${profesional.id}`)} // <-- Añade esta línea
+				  onClick={() => navigate('/citas/nueva', { state: { profesionalId: profesional.id } })}
 				>
 				  Agendar Cita
 				</button>
@@ -213,10 +270,65 @@ export default function Profesionales() {
           margin-bottom: 1rem;
         }
 
-        .professional-email {
-          font-size: 0.9375rem;
+        .professional-schedule {
+          font-size: 0.875rem;
           color: #666666;
           margin: 0 0 1.5rem 0;
+          line-height: 1.5;
+        }
+
+        .filter-button {
+          padding: 0.875rem 1.5rem;
+          background-color: #E5E5E5;
+          color: #000000;
+          border: none;
+          border-radius: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .filter-button:hover {
+          background-color: #D4D4D4;
+        }
+
+        .filters-panel {
+          margin-top: 1rem;
+          padding: 1rem;
+          background-color: #F9FAFB;
+          border-radius: 12px;
+        }
+
+        .apply-filter-button {
+          flex: 1;
+          padding: 0.75rem;
+          background-color: #06B6D4;
+          color: white;
+          border: none;
+          border-radius: 10px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .apply-filter-button:hover {
+          background-color: #0891B2;
+        }
+
+        .clear-filter-button {
+          flex: 1;
+          padding: 0.75rem;
+          background-color: #6B7280;
+          color: white;
+          border: none;
+          border-radius: 10px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .clear-filter-button:hover {
+          background-color: #4B5563;
         }
 
         .contact-button {

@@ -4,6 +4,7 @@ import com.andrey.sistema_citas.dto.UsuarioCreateDTO;
 import com.andrey.sistema_citas.dto.UsuarioResponseDTO;
 import com.andrey.sistema_citas.dto.UsuarioUpdateDTO;
 import com.andrey.sistema_citas.entity.Usuario;
+import com.andrey.sistema_citas.entity.Role;
 
 public class UsuarioMapper {
 
@@ -13,6 +14,18 @@ public class UsuarioMapper {
         u.setEmail(dto.getEmail());
         u.setPassword(dto.getPassword());
         u.setTelefono(dto.getTelefono());
+        
+        // Asignar role si se proporciona, sino USER por defecto
+        if (dto.getRole() != null && !dto.getRole().isEmpty()) {
+            try {
+                u.setRole(Role.valueOf(dto.getRole().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                u.setRole(Role.USER); // Default si el role no es válido
+            }
+        } else {
+            u.setRole(Role.USER);
+        }
+        
         return u;
     }
 
@@ -22,6 +35,7 @@ public class UsuarioMapper {
                 usuario.getNombre(),
                 usuario.getEmail(),
                 usuario.getTelefono(),
+                usuario.getRole() != null ? usuario.getRole().name() : "USER",
                 usuario.getFechaRegistro()
         );
     }

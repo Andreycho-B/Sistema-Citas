@@ -8,6 +8,7 @@ public class UsuarioResponseDTO {
     private String nombre;
     private String email;
     private String telefono;
+    private String role;
     private LocalDateTime fechaRegistro;
 
     // Constructor vacío (requerido para el mapper, frameworks, Jackson)
@@ -15,11 +16,12 @@ public class UsuarioResponseDTO {
     }
 
     // Constructor completo (opcional)
-    public UsuarioResponseDTO(Long id, String nombre, String email, String telefono, LocalDateTime fechaRegistro) {
+    public UsuarioResponseDTO(Long id, String nombre, String email, String telefono, String role, LocalDateTime fechaRegistro) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
         this.telefono = telefono;
+        this.role = role;
         this.fechaRegistro = fechaRegistro;
     }
 
@@ -38,6 +40,10 @@ public class UsuarioResponseDTO {
 
     public String getTelefono() {
         return telefono;
+    }
+
+    public String getRole() {
+        return role;
     }
 
     public LocalDateTime getFechaRegistro() {
@@ -59,6 +65,10 @@ public class UsuarioResponseDTO {
 
     public void setTelefono(String telefono) {
         this.telefono = telefono;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public void setFechaRegistro(LocalDateTime fechaRegistro) {

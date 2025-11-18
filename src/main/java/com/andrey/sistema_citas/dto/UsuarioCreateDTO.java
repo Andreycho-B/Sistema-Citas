@@ -19,6 +19,8 @@ public class UsuarioCreateDTO {
 
     private String telefono;
 
+    private String role; // USER, PROFESSIONAL, ADMIN
+
     // Getters y Setters
     public String getNombre() {
         return nombre;
@@ -50,6 +52,14 @@ public class UsuarioCreateDTO {
 
     public void setTelefono(String telefono) {
         this.telefono = telefono;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
 
