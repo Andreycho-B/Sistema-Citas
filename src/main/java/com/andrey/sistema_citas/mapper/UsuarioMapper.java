@@ -18,12 +18,12 @@ public class UsuarioMapper {
         // Asignar role si se proporciona, sino USER por defecto
         if (dto.getRole() != null && !dto.getRole().isEmpty()) {
             try {
-                u.setRole(Role.valueOf(dto.getRole().toUpperCase()));
+                u.addRole(Role.valueOf(dto.getRole().toUpperCase()));
             } catch (IllegalArgumentException e) {
-                u.setRole(Role.USER); // Default si el role no es válido
+                u.addRole(Role.USER); // Default si el role no es válido
             }
         } else {
-            u.setRole(Role.USER);
+            u.addRole(Role.USER);
         }
         
         return u;
@@ -35,7 +35,9 @@ public class UsuarioMapper {
                 usuario.getNombre(),
                 usuario.getEmail(),
                 usuario.getTelefono(),
-                usuario.getRole() != null ? usuario.getRole().name() : "USER",
+                usuario.getRoles() != null && !usuario.getRoles().isEmpty() 
+                    ? usuario.getRoles().iterator().next().name() 
+                    : "USER",
                 usuario.getFechaRegistro()
         );
     }

@@ -34,6 +34,11 @@ export function useToast() {
     return addToast(message, 'info', duration);
   }, [addToast]);
 
+  // Método showToast para compatibilidad con código existente
+  const showToast = useCallback((message, type = 'info', duration) => {
+    return addToast(message, type, duration);
+  }, [addToast]);
+
   return {
     toasts,
     addToast,
@@ -41,6 +46,7 @@ export function useToast() {
     success,
     error,
     warning,
-    info
+    info,
+    showToast  // Para compatibilidad con código existente
   };
 }
