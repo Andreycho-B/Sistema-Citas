@@ -4,6 +4,7 @@ import com.andrey.sistema_citas.dto.ServicioCreateDTO;
 import com.andrey.sistema_citas.dto.ServicioUpdateDTO;
 import com.andrey.sistema_citas.dto.ServicioResponseDTO;
 import com.andrey.sistema_citas.entity.Servicio;
+import com.andrey.sistema_citas.entity.Profesional;
 
 public class ServicioMapper {
 
@@ -23,12 +24,24 @@ public class ServicioMapper {
     public static ServicioResponseDTO toResponse(Servicio servicio) {
         if (servicio == null) return null;
 
+        Long profesionalId = null;
+        String profesionalNombre = null;
+        
+        if (servicio.getProfesional() != null) {
+            profesionalId = servicio.getProfesional().getId();
+            if (servicio.getProfesional().getUsuario() != null) {
+                profesionalNombre = servicio.getProfesional().getUsuario().getNombre();
+            }
+        }
+
         return new ServicioResponseDTO(
                 servicio.getId(),
                 servicio.getNombre(),
                 servicio.getDescripcion(),
                 servicio.getDuracion(),
-                servicio.getPrecio()
+                servicio.getPrecio(),
+                profesionalId,
+                profesionalNombre
         );
     }
 

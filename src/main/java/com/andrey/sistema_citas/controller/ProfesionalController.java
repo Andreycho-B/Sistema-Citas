@@ -7,6 +7,7 @@ import com.andrey.sistema_citas.service.ProfesionalService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,12 +23,14 @@ public class ProfesionalController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProfesionalResponseDTO> crearProfesional(@Valid @RequestBody ProfesionalCreateDTO dto) {
         ProfesionalResponseDTO nuevo = profesionalService.crearProfesional(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @authz.puedeModificarProfesional(#id, authentication)")
     public ResponseEntity<ProfesionalResponseDTO> actualizarProfesional(
             @PathVariable Long id,
             @Valid @RequestBody ProfesionalUpdateDTO dto) {
@@ -80,6 +83,7 @@ public class ProfesionalController {
     */
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         profesionalService.eliminarProfesional(id);
         return ResponseEntity.noContent().build();

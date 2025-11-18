@@ -8,6 +8,7 @@ import com.andrey.sistema_citas.service.CitaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -24,12 +25,14 @@ public class CitaController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CitaResponseDTO>> obtenerTodasLasCitas() {
         List<CitaResponseDTO> citas = citaService.obtenerTodasLasCitas();
         return ResponseEntity.ok(citas);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @authz.esPropietarioCita(#id, authentication)")
     public ResponseEntity<CitaResponseDTO> obtenerCitaPorId(@PathVariable Long id) {
         CitaResponseDTO cita = citaService.obtenerCitaPorId(id);
         return ResponseEntity.ok(cita);
@@ -42,6 +45,7 @@ public class CitaController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @authz.puedeModificarCita(#id, authentication)")
     public ResponseEntity<CitaResponseDTO> actualizarCita(
             @PathVariable Long id,
             @Valid @RequestBody CitaUpdateDTO dto) {
@@ -50,6 +54,7 @@ public class CitaController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarCita(@PathVariable Long id) {
         citaService.eliminarCita(id);
         return ResponseEntity.noContent().build();
@@ -74,18 +79,21 @@ public class CitaController {
     }
 
     @PatchMapping("/{id}/confirmar")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSIONAL')")
     public ResponseEntity<CitaResponseDTO> confirmarCita(@PathVariable Long id) {
         CitaResponseDTO cita = citaService.confirmarCita(id);
         return ResponseEntity.ok(cita);
     }
 
     @PatchMapping("/{id}/cancelar")
+    @PreAuthorize("hasRole('ADMIN') or @authz.puedeModificarCita(#id, authentication)")
     public ResponseEntity<CitaResponseDTO> cancelarCita(@PathVariable Long id) {
         CitaResponseDTO cita = citaService.cancelarCita(id);
         return ResponseEntity.ok(cita);
     }
 
     @PatchMapping("/{id}/completar")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSIONAL')")
     public ResponseEntity<CitaResponseDTO> completarCita(@PathVariable Long id) {
         CitaResponseDTO cita = citaService.completarCita(id);
         return ResponseEntity.ok(cita);
@@ -100,6 +108,7 @@ public class CitaController {
     }
 
     @GetMapping("/estadisticas")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Object[]>> obtenerEstadisticasCitasPorEstado() {
         List<Object[]> estadisticas = citaService.obtenerEstadisticasCitasPorEstado();
         return ResponseEntity.ok(estadisticas);

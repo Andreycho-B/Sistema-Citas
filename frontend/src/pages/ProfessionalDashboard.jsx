@@ -161,6 +161,32 @@ export default function ProfessionalDashboard() {
           </motion.div>
         </div>
 
+        {/* Quick Actions */}
+        <motion.div 
+          className="mt-12 bg-white p-8 rounded-xl shadow-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Acciones Rápidas</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button 
+              onClick={() => navigate('/professional/mis-servicios')}
+              className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <h3 className="font-semibold text-gray-900">Mis Servicios</h3>
+              <p className="text-sm text-gray-600">Gestiona los servicios que ofreces.</p>
+            </button>
+            <button 
+              onClick={() => navigate('/servicios')}
+              className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <h3 className="font-semibold text-gray-900">Ver Todos los Servicios</h3>
+              <p className="text-sm text-gray-600">Explora el catálogo completo.</p>
+            </button>
+          </div>
+        </motion.div>
+
         {/* Agenda */}
         <motion.div 
           className="mt-12"

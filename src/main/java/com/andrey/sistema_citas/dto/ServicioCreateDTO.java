@@ -21,6 +21,10 @@ public class ServicioCreateDTO {
     @Min(value = 0, message = "El precio no puede ser negativo")
     private Double precio;
 
+    // Opcional: si es null, el servicio es creado por un ADMIN (servicio global)
+    // Si tiene valor, el servicio pertenece a ese profesional específico
+    private Long profesionalId;
+
     public ServicioCreateDTO() {}
 
     // Getters y Setters
@@ -54,5 +58,13 @@ public class ServicioCreateDTO {
 
     public void setPrecio(Double precio) {
         this.precio = precio;
+    }
+
+    public Long getProfesionalId() {
+        return profesionalId;
+    }
+
+    public void setProfesionalId(Long profesionalId) {
+        this.profesionalId = profesionalId;
     }
 }

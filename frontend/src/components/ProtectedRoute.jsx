@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -36,6 +36,18 @@ export default function ProtectedRoute({ children }) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Si se especifican roles permitidos, verificar que el usuario tenga al menos uno
+  if (allowedRoles.length > 0) {
+    const hasRequiredRole = user.roles && user.roles.some(role => 
+      allowedRoles.includes(role)
+    );
+
+    if (!hasRequiredRole) {
+      // Redirigir a una página de acceso denegado o al dashboard principal
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return children;

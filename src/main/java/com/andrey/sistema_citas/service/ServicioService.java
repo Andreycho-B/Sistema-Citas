@@ -4,9 +4,13 @@ import com.andrey.sistema_citas.dto.ServicioCreateDTO;
 import com.andrey.sistema_citas.dto.ServicioUpdateDTO;
 import com.andrey.sistema_citas.dto.ServicioResponseDTO;
 import com.andrey.sistema_citas.entity.Servicio;
+import com.andrey.sistema_citas.entity.Profesional;
+import com.andrey.sistema_citas.entity.Usuario;
 import com.andrey.sistema_citas.exception.ResourceNotFoundException;
 import com.andrey.sistema_citas.mapper.ServicioMapper;
 import com.andrey.sistema_citas.repository.ServicioRepository;
+import com.andrey.sistema_citas.repository.ProfesionalRepository;
+import com.andrey.sistema_citas.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;
 import com.andrey.sistema_citas.exception.DuplicateResourceException;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +25,15 @@ import java.util.stream.Collectors;
 public class ServicioService {
 
     private final ServicioRepository servicioRepository;
+    private final ProfesionalRepository profesionalRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public ServicioService(ServicioRepository servicioRepository) {
+    public ServicioService(ServicioRepository servicioRepository,
+                          ProfesionalRepository profesionalRepository,
+                          UsuarioRepository usuarioRepository) {
         this.servicioRepository = servicioRepository;
+        this.profesionalRepository = profesionalRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     public ServicioResponseDTO crearServicio(ServicioCreateDTO dto) {
@@ -32,6 +42,17 @@ public class ServicioService {
         });
 
         Servicio servicio = ServicioMapper.toEntity(dto);
+        
+        // Si se proporciona un profesionalId, asignar el profesional al servicio
+        if (dto.getProfesionalId() != null) {
+            com.andrey.sistema_citas.entity.Profesional profesional = 
+                profesionalRepository.findById(dto.getProfesionalId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                        "Profesional no encontrado con ID: " + dto.getProfesionalId()));
+            servicio.setProfesional(profesional);
+        }
+        // Si no se proporciona profesionalId, el servicio es global (creado por ADMIN)
+        
         Servicio guardado = servicioRepository.save(servicio);
         return ServicioMapper.toResponse(guardado);
     }
@@ -89,5 +110,26 @@ public class ServicioService {
             throw new ResourceNotFoundException("Servicio no encontrado con id: " + id);
         }
         servicioRepository.deleteById(id);
+    }
+
+    public List<ServicioResponseDTO> obtenerServiciosPorProfesional(Long profesionalId) {
+        return servicioRepository.findByProfesionalId(profesionalId)
+                .stream()
+                .map(ServicioMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<ServicioResponseDTO> obtenerServiciosGlobales() {
+        return servicioRepository.findByProfesionalIsNull()
+                .stream()
+                .map(ServicioMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    public Long obtenerProfesionalIdPorEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .flatMap(usuario -> profesionalRepository.findByUsuarioId(usuario.getId()))
+                .map(Profesional::getId)
+                .orElse(null);
     }
 }

@@ -32,6 +32,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UsuarioResponseDTO> register(@Valid @RequestBody UsuarioCreateDTO usuarioDTO) {
+        // El registro público siempre asigna rol USER
+        // Los roles ADMIN y PROFESSIONAL solo pueden ser asignados por un ADMIN existente
         UsuarioResponseDTO nuevoUsuario = usuarioService.crearUsuario(usuarioDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
     }

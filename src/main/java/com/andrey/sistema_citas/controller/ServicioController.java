@@ -9,13 +9,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/servicios")
-@CrossOrigin(origins = "http://localhost:5173") // React/Vite
 public class ServicioController {
 
     private final ServicioService servicioService;
@@ -25,6 +25,7 @@ public class ServicioController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSIONAL')")
     public ResponseEntity<ServicioResponseDTO> crearServicio(@Valid @RequestBody ServicioCreateDTO dto) {
         ServicioResponseDTO nuevo = servicioService.crearServicio(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
@@ -67,6 +68,7 @@ public class ServicioController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @authz.puedeModificarServicio(#id, authentication)")
     public ResponseEntity<ServicioResponseDTO> actualizarServicio(
             @PathVariable Long id,
             @Valid @RequestBody ServicioUpdateDTO dto
@@ -76,8 +78,28 @@ public class ServicioController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @authz.puedeModificarServicio(#id, authentication)")
     public ResponseEntity<Void> eliminarServicio(@PathVariable Long id) {
         servicioService.eliminarServicio(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/mis-servicios")
+    @PreAuthorize("hasRole('PROFESSIONAL')")
+    public ResponseEntity<List<ServicioResponseDTO>> obtenerMisServicios(
+            org.springframework.security.core.Authentication authentication) {
+        Long profesionalId = servicioService.obtenerProfesionalIdPorEmail(authentication.getName());
+        if (profesionalId == null) {
+            return ResponseEntity.ok(List.of());
+        }
+        List<ServicioResponseDTO> servicios = servicioService.obtenerServiciosPorProfesional(profesionalId);
+        return ResponseEntity.ok(servicios);
+    }
+
+    @GetMapping("/profesional/{profesionalId}")
+    public ResponseEntity<List<ServicioResponseDTO>> obtenerServiciosPorProfesional(
+            @PathVariable Long profesionalId) {
+        List<ServicioResponseDTO> servicios = servicioService.obtenerServiciosPorProfesional(profesionalId);
+        return ResponseEntity.ok(servicios);
     }
 }

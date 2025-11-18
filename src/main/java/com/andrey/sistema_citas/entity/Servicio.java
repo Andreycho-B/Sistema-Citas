@@ -1,5 +1,6 @@
 package com.andrey.sistema_citas.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,10 +31,23 @@ public class Servicio {
     @Column
     private Double precio;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profesional_id", nullable = true)
+    @JsonIgnore
+    private Profesional profesional;
+
     public Servicio(String nombre, String descripcion, String duracion, Double precio) {
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.duracion = duracion;
         this.precio = precio;
+    }
+
+    public Servicio(String nombre, String descripcion, String duracion, Double precio, Profesional profesional) {
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.duracion = duracion;
+        this.precio = precio;
+        this.profesional = profesional;
     }
 }

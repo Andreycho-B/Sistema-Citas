@@ -35,6 +35,10 @@ public class Profesional {
     @OneToMany(mappedBy = "profesional")
     @JsonIgnore
     private List<Cita> citas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "profesional", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Servicio> servicios = new ArrayList<>();
     
     public Profesional(String especialidad, String horarioDisponible, Usuario usuario) {
         this.especialidad = especialidad;

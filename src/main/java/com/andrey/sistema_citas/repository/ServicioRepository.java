@@ -44,4 +44,10 @@ public interface ServicioRepository extends JpaRepository<Servicio, Long> {
     // Consulta personalizada: servicios más caros que el promedio
     @Query("SELECT s FROM Servicio s WHERE s.precio > (SELECT AVG(s2.precio) FROM Servicio s2)")
     List<Servicio> findServiciosMasCarosQueElPromedio();
+
+    // Buscar servicios por profesional
+    List<Servicio> findByProfesionalId(Long profesionalId);
+
+    // Buscar servicios globales (sin profesional asignado)
+    List<Servicio> findByProfesionalIsNull();
 }

@@ -106,7 +106,7 @@ export default function AdminDashboard() {
           transition={{ delay: 0.2 }}
         >
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">Acciones Rápidas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button 
               onClick={() => navigate('/admin/usuarios')}
               className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors"
@@ -127,6 +127,13 @@ export default function AdminDashboard() {
             >
               <h3 className="font-semibold text-gray-900">Gestionar Servicios</h3>
               <p className="text-sm text-gray-600">Crear y editar servicios.</p>
+            </button>
+            <button 
+              onClick={() => navigate('/admin/citas')}
+              className="p-4 text-left border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <h3 className="font-semibold text-gray-900">Gestionar Citas</h3>
+              <p className="text-sm text-gray-600">Ver y administrar todas las citas.</p>
             </button>
           </div>
         </motion.div>

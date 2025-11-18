@@ -7,6 +7,8 @@ public class ServicioResponseDTO {
     private String descripcion;
     private String duracion;
     private Double precio;
+    private Long profesionalId;
+    private String profesionalNombre;
 
     public ServicioResponseDTO() {}
 
@@ -16,6 +18,16 @@ public class ServicioResponseDTO {
         this.descripcion = descripcion;
         this.duracion = duracion;
         this.precio = precio;
+    }
+
+    public ServicioResponseDTO(Long id, String nombre, String descripcion, String duracion, Double precio, Long profesionalId, String profesionalNombre) {
+        this.id = id;
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.duracion = duracion;
+        this.precio = precio;
+        this.profesionalId = profesionalId;
+        this.profesionalNombre = profesionalNombre;
     }
 
     public Long getId() {
@@ -56,6 +68,22 @@ public class ServicioResponseDTO {
 
     public void setPrecio(Double precio) {
         this.precio = precio;
+    }
+
+    public Long getProfesionalId() {
+        return profesionalId;
+    }
+
+    public void setProfesionalId(Long profesionalId) {
+        this.profesionalId = profesionalId;
+    }
+
+    public String getProfesionalNombre() {
+        return profesionalNombre;
+    }
+
+    public void setProfesionalNombre(String profesionalNombre) {
+        this.profesionalNombre = profesionalNombre;
     }
 }
 

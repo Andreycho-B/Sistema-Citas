@@ -142,6 +142,19 @@ public class CitaService {
     }
 
     public CitaResponseDTO cancelarCita(Long citaId) {
+        Cita cita = citaRepository.findById(citaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada con ID: " + citaId));
+
+        // Validar que la cita no esté ya completada
+        if (cita.getEstado() == EstadoCita.COMPLETADA) {
+            throw new BusinessRuleException("No se puede cancelar una cita que ya fue completada");
+        }
+
+        // Validar que la cita no esté ya cancelada
+        if (cita.getEstado() == EstadoCita.CANCELADA) {
+            throw new BusinessRuleException("La cita ya está cancelada");
+        }
+
         return cambiarEstadoCita(citaId, EstadoCita.CANCELADA);
     }
 

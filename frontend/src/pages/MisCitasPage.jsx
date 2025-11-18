@@ -17,6 +17,9 @@ export default function MisCitasPage() {
   const [filter, setFilter] = useState('todas'); // todas, proximas, pasadas, pendientes, confirmadas, completadas, canceladas
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
+  const [editingCita, setEditingCita] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({ fechaHora: '' });
 
   useEffect(() => {
     loadCitas();
@@ -91,6 +94,36 @@ export default function MisCitasPage() {
     } catch (err) {
       console.error('Error al cancelar cita:', err);
       alert('Error al cancelar la cita');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleEditarCita = (cita) => {
+    setEditingCita(cita);
+    // Formatear la fecha para el input datetime-local
+    const fecha = new Date(cita.fechaHora);
+    const fechaLocal = new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+    setEditFormData({ fechaHora: fechaLocal });
+    setShowEditModal(true);
+  };
+
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setActionLoading(editingCita.id);
+      await citaService.actualizarCita(editingCita.id, {
+        fechaHora: new Date(editFormData.fechaHora).toISOString()
+      });
+      setShowEditModal(false);
+      setEditingCita(null);
+      await loadCitas();
+    } catch (err) {
+      console.error('Error al actualizar cita:', err);
+      alert('Error al actualizar la cita');
     } finally {
       setActionLoading(null);
     }
@@ -283,13 +316,22 @@ export default function MisCitasPage() {
                     <div className="flex flex-col gap-2 ml-4">
                       {(cita.estado === 'PENDIENTE' || cita.estado === 'CONFIRMADA') && 
                        isAfter(new Date(cita.fechaHora), new Date()) && (
-                        <button
-                          onClick={() => handleCancelarCita(cita.id)}
-                          disabled={actionLoading === cita.id}
-                          className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {actionLoading === cita.id ? 'Cancelando...' : 'Cancelar Cita'}
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleEditarCita(cita)}
+                            disabled={actionLoading === cita.id}
+                            className="px-4 py-2 bg-cyan-100 text-cyan-700 rounded-md hover:bg-cyan-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Editar Fecha
+                          </button>
+                          <button
+                            onClick={() => handleCancelarCita(cita.id)}
+                            disabled={actionLoading === cita.id}
+                            className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {actionLoading === cita.id ? 'Cancelando...' : 'Cancelar Cita'}
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -299,6 +341,65 @@ export default function MisCitasPage() {
           )}
         </motion.div>
       </div>
+
+      {/* Modal de Edición */}
+      {showEditModal && editingCita && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-lg p-8 max-w-md w-full mx-4"
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Editar Fecha de Cita
+            </h2>
+            
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">Servicio:</p>
+              <p className="font-semibold">{editingCita.servicio.nombre}</p>
+              <p className="text-sm text-gray-600 mt-2">Profesional:</p>
+              <p className="font-semibold">{editingCita.profesional.usuario.nombre}</p>
+            </div>
+
+            <form onSubmit={handleSubmitEdit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nueva Fecha y Hora *
+                </label>
+                <input
+                  type="datetime-local"
+                  required
+                  value={editFormData.fechaHora}
+                  onChange={(e) => setEditFormData({ fechaHora: e.target.value })}
+                  min={new Date().toISOString().slice(0, 16)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="submit"
+                  disabled={actionLoading === editingCita.id}
+                  className="flex-1 bg-cyan-600 text-white px-4 py-2 rounded-md hover:bg-cyan-700 transition-colors disabled:opacity-50"
+                >
+                  {actionLoading === editingCita.id ? 'Actualizando...' : 'Actualizar'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingCita(null);
+                  }}
+                  disabled={actionLoading === editingCita.id}
+                  className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
