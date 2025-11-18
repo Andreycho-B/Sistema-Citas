@@ -2,8 +2,8 @@ import axios from 'axios';
 import { authService } from './authService';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8088/api',
-  timeout: 10000
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8088/api',
+  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000
 });
 
 // Interceptor para agregar token a todas las peticiones

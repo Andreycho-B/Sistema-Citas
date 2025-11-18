@@ -9,6 +9,9 @@ import AdminDashboard from './pages/AdminDashboard';
 import ProfessionalDashboard from './pages/ProfessionalDashboard';
 import ServiciosPage from './pages/ServiciosPage';
 import CrearServicioPage from './pages/CrearServicioPage';
+import AgendarCitaPage from './pages/AgendarCitaPage';
+import MisCitasPage from './pages/MisCitasPage';
+import PerfilPage from './pages/PerfilPage';
 
 
 function App() {
@@ -30,7 +33,10 @@ function App() {
 		  <Route path="/admin/servicios/nuevo" element={<ProtectedRoute><CrearServicioPage /></ProtectedRoute>} />
           <Route path="/professional/dashboard" element={<ProtectedRoute><ProfessionalDashboard /></ProtectedRoute>} />
           <Route path="/profesionales" element={<ProtectedRoute><Profesionales /></ProtectedRoute>} />
-		  <Route path="/servicios" element={<ProtectedRoute><ServiciosPage /></ProtectedRoute>} />
+			  <Route path="/servicios" element={<ProtectedRoute><ServiciosPage /></ProtectedRoute>} />
+			  <Route path="/citas/nueva" element={<ProtectedRoute><AgendarCitaPage /></ProtectedRoute>} />
+			  <Route path="/mis-citas" element={<ProtectedRoute><MisCitasPage /></ProtectedRoute>} />
+			  <Route path="/perfil" element={<ProtectedRoute><PerfilPage /></ProtectedRoute>} />
           {/* Redirigir raíz a dashboard */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           

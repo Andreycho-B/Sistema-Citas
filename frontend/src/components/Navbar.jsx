@@ -18,7 +18,8 @@ export default function Navbar() {
     { path: '/dashboard', label: 'Inicio', icon: '🏠' },
     { path: '/profesionales', label: 'Profesionales', icon: '👥' },
     { path: '/servicios', label: 'Servicios', icon: '✨' },
-    { path: '/citas', label: 'Mis Citas', icon: '📅' },
+    { path: '/mis-citas', label: 'Mis Citas', icon: '📅' },
+    { path: '/perfil', label: 'Perfil', icon: '👤' },
   ];
 
   // Agregar items según rol

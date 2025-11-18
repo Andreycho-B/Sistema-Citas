@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL para desarrollo
+  db:
+    image: mysql:8.0
+    container_name: sistema-citas-db-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sistema_citas_emocionales
+      MYSQL_USER: devuser
+      MYSQL_PASSWORD: devpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    networks:
+      - sistema-citas-dev-network
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  # phpMyAdmin para gestión de base de datos
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: sistema-citas-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - sistema-citas-dev-network
+
+volumes:
+  mysql_dev_data:
+    driver: local
+
+networks:
+  sistema-citas-dev-network:
+    driver: bridge
